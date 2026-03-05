@@ -974,15 +974,32 @@ export const useAppStore = create<AppState>()(
         };
       });
 
-      // 恢复选中的控制器和资源状态
+      // 恢复选中的控制器和资源状态，同时校验它们在当前 interface 中是否仍然存在
+      const validControllerNames = new Set(pi?.controller.map((c) => c.name) || []);
+      const validResourceNames = new Set(pi?.resource.map((r) => r.name) || []);
+
       const selectedController: Record<string, string> = {};
       const selectedResource: Record<string, string> = {};
       instances.forEach((inst) => {
         if (inst.controllerName) {
-          selectedController[inst.id] = inst.controllerName;
+          if (validControllerNames.has(inst.controllerName)) {
+            selectedController[inst.id] = inst.controllerName;
+          } else {
+            loggers.config.warn(
+              `实例 "${inst.name}" 的控制器 "${inst.controllerName}" 在当前 interface 中不存在，已重置`,
+            );
+            inst.controllerName = '';
+          }
         }
         if (inst.resourceName) {
-          selectedResource[inst.id] = inst.resourceName;
+          if (validResourceNames.has(inst.resourceName)) {
+            selectedResource[inst.id] = inst.resourceName;
+          } else {
+            loggers.config.warn(
+              `实例 "${inst.name}" 的资源 "${inst.resourceName}" 在当前 interface 中不存在，已重置`,
+            );
+            inst.resourceName = '';
+          }
         }
       });
 
