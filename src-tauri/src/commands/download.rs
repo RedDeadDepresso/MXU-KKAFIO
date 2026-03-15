@@ -3,7 +3,9 @@
 //! 提供流式文件下载功能，支持进度回调和取消
 
 use log::{error, info, warn};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::Arc;
 
 use tauri::Emitter;
 
@@ -13,6 +15,44 @@ use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
 use super::types::{DownloadProgressEvent, DownloadResult};
 use super::update::move_to_old_folder;
 use super::utils::build_user_agent;
+
+/// 进度上报任务的守卫，在函数任意返回路径上都能确保发送停止信号
+struct ProgressEmitterGuard(Option<tokio::sync::oneshot::Sender<()>>);
+
+impl Drop for ProgressEmitterGuard {
+    fn drop(&mut self) {
+        if let Some(tx) = self.0.take() {
+            let _ = tx.send(());
+        }
+    }
+}
+
+/// 临时文件清理守卫，在函数异常退出时自动删除 .downloading 半成品。
+/// 成功重命名后需调用 `disarm()`，避免 drop 时冗余的 `remove_file`。
+struct TempFileGuard {
+    path: Option<PathBuf>,
+}
+
+impl TempFileGuard {
+    fn new(path: PathBuf) -> Self {
+        Self { path: Some(path) }
+    }
+
+    /// 成功重命名后调用，使 drop 时不再尝试删除（文件已移至目标路径）。
+    fn disarm(&mut self) {
+        self.path = None;
+    }
+}
+
+impl Drop for TempFileGuard {
+    fn drop(&mut self) {
+        if let Some(p) = self.path.take() {
+            // 必须同步删除，避免竞态条件：
+            // 如果异步删除，可能在下一次下载创建同名临时文件后才执行，导致误删。
+            let _ = std::fs::remove_file(&p);
+        }
+    }
+}
 
 /// 全局下载取消标志
 static DOWNLOAD_CANCELLED: AtomicBool = AtomicBool::new(false);
@@ -121,7 +161,8 @@ pub async fn download_file(
     proxy_url: Option<String>,
 ) -> Result<DownloadResult, String> {
     use futures_util::StreamExt;
-    use std::io::Write;
+    use tokio::io::{AsyncWriteExt, BufWriter};
+    use tokio::time::{sleep, Duration};
 
     info!("download_file: {} -> {}", url, save_path);
 
@@ -201,22 +242,79 @@ pub async fn download_file(
 
     // 使用临时文件名下载
     let temp_path = format!("{}.downloading", actual_save_path);
+    let mut temp_guard = TempFileGuard::new(PathBuf::from(&temp_path));
 
     // 获取文件大小
     let content_length = response.content_length();
     let total = total_size.or(content_length).unwrap_or(0);
 
-    // 创建临时文件
-    let mut file = std::fs::File::create(&temp_path).map_err(|e| format!("无法创建文件: {}", e))?;
+    // 创建临时文件（使用带缓冲的异步写入，避免频繁小块 I/O 抖动）
+    let file = tokio::fs::File::create(&temp_path)
+        .await
+        .map_err(|e| format!("无法创建文件: {}", e))?;
+    let mut writer = BufWriter::with_capacity(256 * 1024, file);
+
+    // 共享下载字节计数，用于独立的进度上报任务
+    let downloaded_shared = Arc::new(AtomicU64::new(0));
+    let downloaded_for_emitter = downloaded_shared.clone();
+
+    // 启动独立任务定期上报进度，避免在下载循环中因 emit 阻塞导致”卡卡停停”
+    let app_for_emitter = app.clone();
+    let (stop_tx, mut stop_rx) = tokio::sync::oneshot::channel::<()>();
+    let progress_guard = ProgressEmitterGuard(Some(stop_tx));
+    tokio::spawn(async move {
+        let mut last_downloaded = 0u64;
+        let mut last_instant = tokio::time::Instant::now();
+        loop {
+            tokio::select! {
+                _ = &mut stop_rx => {
+                    break;
+                }
+                _ = sleep(Duration::from_millis(100)) => {
+                    let downloaded = downloaded_for_emitter.load(Ordering::Relaxed);
+                    let now = tokio::time::Instant::now();
+                    let elapsed = now.duration_since(last_instant);
+                    if elapsed.as_millis() == 0 {
+                        continue;
+                    }
+
+                    let bytes_in_interval = downloaded.saturating_sub(last_downloaded);
+                    let speed = if elapsed.as_secs_f64() > 0.0 {
+                        (bytes_in_interval as f64 / elapsed.as_secs_f64()) as u64
+                    } else {
+                        0
+                    };
+
+                    let progress = if total > 0 {
+                        ((downloaded as f64 / total as f64) * 100.0).min(100.0)
+                    } else {
+                        0.0
+                    };
+
+                    let _ = app_for_emitter.emit(
+                        "download-progress",
+                        DownloadProgressEvent {
+                            session_id,
+                            downloaded_size: downloaded,
+                            total_size: total,
+                            speed,
+                            progress,
+                        },
+                    );
+
+                    last_downloaded = downloaded;
+                    last_instant = now;
+                }
+            }
+        }
+    });
+
+    // 说明：downloaded_shared 仅用于进度上报的近实时采样，对 UI 来说允许“最终一致”，
+    // 因此这里使用 Relaxed 内存序即可，避免在热路径上引入不必要的全序栅栏。
 
     // 流式下载
     let mut stream = response.bytes_stream();
     let mut downloaded: u64 = 0;
-    let mut last_progress_time = std::time::Instant::now();
-    let mut last_downloaded: u64 = 0;
-
-    // 使用较大的缓冲区减少写入次数
-    let mut buffer = Vec::with_capacity(256 * 1024); // 256KB 缓冲
 
     while let Some(chunk) = stream.next().await {
         // 检查取消标志或 session 是否已过期
@@ -224,50 +322,19 @@ pub async fn download_file(
             || CURRENT_DOWNLOAD_SESSION.load(Ordering::SeqCst) != session_id
         {
             info!("download_file cancelled (session {})", session_id);
-            drop(file);
-            // 清理临时文件
-            let _ = std::fs::remove_file(&temp_path);
+            drop(writer);
             return Err("下载已取消".to_string());
         }
 
         let chunk = chunk.map_err(|e| format!("下载数据失败: {}", e))?;
 
-        buffer.extend_from_slice(&chunk);
+        // 使用带缓冲的异步写入，避免对每个小 chunk 直接落盘导致频繁 I/O 抖动
+        writer
+            .write_all(&chunk)
+            .await
+            .map_err(|e| format!("写入文件失败: {}", e))?;
         downloaded += chunk.len() as u64;
-
-        // 当缓冲区达到一定大小时写入磁盘
-        if buffer.len() >= 256 * 1024 {
-            file.write_all(&buffer)
-                .map_err(|e| format!("写入文件失败: {}", e))?;
-            buffer.clear();
-        }
-
-        // 每 100ms 发送一次进度更新
-        let now = std::time::Instant::now();
-        let elapsed = now.duration_since(last_progress_time);
-        if elapsed.as_millis() >= 100 {
-            let bytes_in_interval = downloaded - last_downloaded;
-            let speed = (bytes_in_interval as f64 / elapsed.as_secs_f64()) as u64;
-            let progress = if total > 0 {
-                (downloaded as f64 / total as f64) * 100.0
-            } else {
-                0.0
-            };
-
-            let _ = app.emit(
-                "download-progress",
-                DownloadProgressEvent {
-                    session_id,
-                    downloaded_size: downloaded,
-                    total_size: total,
-                    speed,
-                    progress,
-                },
-            );
-
-            last_progress_time = now;
-            last_downloaded = downloaded;
-        }
+        downloaded_shared.store(downloaded, Ordering::Relaxed);
     }
 
     // 最后再检查一次取消标志
@@ -278,21 +345,24 @@ pub async fn download_file(
             "download_file cancelled before finalization (session {})",
             session_id
         );
-        drop(file);
-        let _ = std::fs::remove_file(&temp_path);
+        drop(writer);
         return Err("下载已取消".to_string());
     }
 
-    // 写入剩余缓冲区
-    if !buffer.is_empty() {
-        file.write_all(&buffer)
-            .map_err(|e| format!("写入文件失败: {}", e))?;
-    }
+    // 刷新缓冲区并确保数据写入磁盘
+    writer
+        .flush()
+        .await
+        .map_err(|e| format!("刷新写入缓冲区失败: {}", e))?;
 
-    // 确保数据写入磁盘
-    file.sync_all()
+    writer
+        .get_ref()
+        .sync_all()
+        .await
         .map_err(|e| format!("同步文件失败: {}", e))?;
-    drop(file);
+
+    // 显式关闭文件句柄，避免 Windows 上 rename 失败
+    drop(writer);
 
     // 发送最终进度
     let _ = app.emit(
@@ -311,13 +381,19 @@ pub async fn download_file(
         let _ = move_to_old_folder(actual_save_path_obj);
     }
 
-    // 重命名临时文件
-    std::fs::rename(&temp_path, &actual_save_path).map_err(|e| format!("重命名文件失败: {}", e))?;
+    // 重命名临时文件（使用异步版本避免阻塞 runtime 线程）
+    tokio::fs::rename(&temp_path, &actual_save_path)
+        .await
+        .map_err(|e| format!("重命名文件失败: {}", e))?;
+    temp_guard.disarm();
 
     info!(
         "download_file completed: {} bytes -> {} (session {})",
         downloaded, actual_save_path, session_id
     );
+
+    // 显式 drop progress_guard 以停止进度上报任务
+    drop(progress_guard);
 
     Ok(DownloadResult {
         session_id,
