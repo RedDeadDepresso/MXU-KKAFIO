@@ -722,8 +722,17 @@ pub fn maa_run_task(
         .as_ref()
         .ok_or("Controller not connected")?;
 
-    // 创建或获取 tasker
-    if instance.tasker.is_none() {
+    // 创建或获取 tasker（若已有 tasker 但未初始化则自动丢弃并重建）
+    let needs_new_tasker = match instance.tasker.as_ref() {
+        None => true,
+        Some(t) => !t.inited(),
+    };
+    if needs_new_tasker {
+        if instance.tasker.is_some() {
+            warn!("[run_task] Existing tasker is not initialized, discarding and rebuilding...");
+            instance.tasker = None;
+        }
+
         let tasker = Tasker::new().map_err(|e| e.to_string())?;
 
         // 添加回调 Sink，用于接收任务状态通知
@@ -752,9 +761,8 @@ pub fn maa_run_task(
 
     let tasker = instance.tasker.as_ref().unwrap();
 
-    // 检查初始化状态
     if !tasker.inited() {
-        return Err("Tasker not initialized".to_string());
+        return Err("Tasker not initialized even after rebuild".to_string());
     }
 
     let job = tasker

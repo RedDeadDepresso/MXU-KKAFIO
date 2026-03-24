@@ -724,6 +724,7 @@ export function ConnectionPanel() {
       if (isConnected) {
         await maaService.destroyInstance(instanceId).catch(() => {});
         setIsConnected(false);
+        setInstanceResourceLoaded(instanceId, false);
       }
 
       const initialized = await ensureMaaInitialized();
@@ -768,6 +769,7 @@ export function ConnectionPanel() {
       if (isConnected) {
         await maaService.destroyInstance(instanceId).catch(() => {});
         setIsConnected(false);
+        setInstanceResourceLoaded(instanceId, false);
       }
 
       const initialized = await ensureMaaInitialized();

@@ -276,6 +276,7 @@ export function DeviceSelector({
     try {
       await maaService.destroyInstance(instanceId);
       setIsConnected(false);
+      useAppStore.getState().setInstanceResourceLoaded(instanceId, false);
       onConnectionChange?.(false);
       log.info('已断开连接');
     } catch (err) {

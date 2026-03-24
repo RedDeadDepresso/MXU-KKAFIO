@@ -542,6 +542,7 @@ function InstanceCard({ instanceId, instanceName, isActive, onSelect }: Instance
     try {
       await maaService.destroyInstance(instanceId);
       setInstanceConnectionStatus(instanceId, 'Disconnected');
+      useAppStore.getState().setInstanceResourceLoaded(instanceId, false);
       setScreenshotUrl(null);
       streamingRef.current = false;
       setInstanceScreenshotStreaming(instanceId, false);

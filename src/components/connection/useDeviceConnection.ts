@@ -25,6 +25,7 @@ export function useDeviceConnection({
     setCachedAdbDevices,
     setCachedWin32Windows,
     setInstanceConnectionStatus,
+    setInstanceResourceLoaded,
     setInstanceSavedDevice,
     registerCtrlIdName,
     instances,
@@ -170,6 +171,7 @@ export function useDeviceConnection({
         if (isConnected) {
           await maaService.destroyInstance(instanceId).catch(() => {});
           setIsConnected(false);
+          setInstanceResourceLoaded(instanceId, false);
         }
 
         const initialized = await ensureMaaInitialized();
@@ -201,6 +203,7 @@ export function useDeviceConnection({
       isConnected,
       setInstanceSavedDevice,
       setInstanceConnectionStatus,
+      setInstanceResourceLoaded,
       connectControllerInternal,
       t,
     ],
@@ -221,6 +224,7 @@ export function useDeviceConnection({
         if (isConnected) {
           await maaService.destroyInstance(instanceId).catch(() => {});
           setIsConnected(false);
+          setInstanceResourceLoaded(instanceId, false);
         }
 
         const initialized = await ensureMaaInitialized();
@@ -261,6 +265,7 @@ export function useDeviceConnection({
       currentController,
       setInstanceSavedDevice,
       setInstanceConnectionStatus,
+      setInstanceResourceLoaded,
       connectControllerInternal,
       t,
     ],

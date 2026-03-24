@@ -302,8 +302,17 @@ pub async fn maa_start_tasks(
             .clone();
         debug!("[start_tasks] Controller acquired");
 
-        // 创建或获取 tasker
-        if instance.tasker.is_none() {
+        // 创建或获取 tasker（若已有 tasker 但未初始化则自动丢弃并重建）
+        let needs_new_tasker = match instance.tasker.as_ref() {
+            None => true,
+            Some(t) => !t.inited(),
+        };
+        if needs_new_tasker {
+            if instance.tasker.is_some() {
+                warn!("[start_tasks] Existing tasker is not initialized, discarding and rebuilding...");
+                instance.tasker = None;
+            }
+
             debug!("[start_tasks] Creating new tasker...");
             let t = Tasker::new().map_err(|e| e.to_string())?;
             debug!("[start_tasks] Tasker created");
@@ -333,7 +342,7 @@ pub async fn maa_start_tasks(
             instance.tasker = Some(t);
             debug!("[start_tasks] Tasker created and stored");
         } else {
-            debug!("[start_tasks] Using existing tasker");
+            debug!("[start_tasks] Using existing initialized tasker");
         }
 
         let t = instance.tasker.as_ref().unwrap().clone();

@@ -381,10 +381,9 @@ export function ScreenshotPanel() {
     if (!instanceId) return;
 
     try {
-      // 销毁实例会断开连接
       await maaService.destroyInstance(instanceId);
-      // 更新连接状态
       useAppStore.getState().setInstanceConnectionStatus(instanceId, 'Disconnected');
+      useAppStore.getState().setInstanceResourceLoaded(instanceId, false);
       setScreenshotUrl(null);
       streamingRef.current = false;
       setIsStreaming(false);

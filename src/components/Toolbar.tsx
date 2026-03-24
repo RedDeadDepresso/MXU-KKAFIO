@@ -188,7 +188,7 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
         (savedDevice.adbDeviceName || savedDevice.windowName || savedDevice.playcoverAddress),
       );
 
-      const isTargetConnected = instanceConnectionStatus[targetId] === 'Connected';
+      let isTargetConnected = instanceConnectionStatus[targetId] === 'Connected';
       const isTargetResourceLoaded = instanceResourceLoaded[targetId] || false;
 
       // 判断是否可以运行：已连接+资源已加载、有保存设备+资源、或有控制器+资源（自动搜索）
@@ -398,6 +398,18 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
         if (needsReconnect && isTargetConnected) {
           log.info(`实例 ${targetInstance.name}: 前置程序已重启应用，重置连接状态以重新连接`);
           setInstanceConnectionStatus(targetId, 'Disconnected');
+        }
+
+        // 查询后端真实连接状态，纠正前端可能过时的缓存
+        if (isTargetConnected && !needsReconnect) {
+          const backendState = await maaService.getInstanceState(targetId);
+          if (!backendState || backendState.connectionStatus !== 'Connected') {
+            log.warn(
+              `实例 ${targetInstance.name}: 后端${backendState ? '连接已断开' : '实例不存在'}，但前端缓存为已连接，强制重新连接`,
+            );
+            setInstanceConnectionStatus(targetId, 'Disconnected');
+            isTargetConnected = false;
+          }
         }
 
         // 如果未连接（或需要重连），尝试自动连接
@@ -640,8 +652,20 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
           }
         }
 
+        // 查询后端真实状态，纠正前端可能过时的缓存
+        const backendState = await maaService.getInstanceState(targetId);
+        if (backendState && !backendState.resourceLoaded && instanceResourceLoaded[targetId]) {
+          log.warn(
+            `实例 ${targetInstance.name}: 后端资源未加载，但前端缓存为已加载，重置缓存并强制重载`,
+          );
+          setInstanceResourceLoaded(targetId, false);
+        }
+        const isResourceReallyLoaded = backendState
+          ? backendState.resourceLoaded
+          : (instanceResourceLoaded[targetId] ?? false);
+
         // 如果资源未加载，尝试自动加载
-        if (!instanceResourceLoaded[targetId] && resource) {
+        if (!isResourceReallyLoaded && resource) {
           log.info(`实例 ${targetInstance.name}: 加载资源...`);
           onPhaseChange?.('loading_resource');
 
