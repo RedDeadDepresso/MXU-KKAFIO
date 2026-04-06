@@ -309,7 +309,10 @@ export function ConnectionPanel() {
 
   // 判断是否需要搜索设备（PlayCover 不需要搜索）
   const needsDeviceSearch =
-    controllerType === 'Adb' || controllerType === 'Win32'  || controllerType === 'Gamepad' || controllerType === 'WlRoots';
+    controllerType === 'Adb' ||
+    controllerType === 'Win32' ||
+    controllerType === 'Gamepad' ||
+    controllerType === 'WlRoots';
 
   // 记录上一次的控制器名称，用于检测切换
   const prevControllerNameRef = useRef<string | undefined>(currentControllerName);
@@ -1373,11 +1376,13 @@ export function ConnectionPanel() {
                     <span
                       className={clsx(
                         'truncate',
-                        (controllerType === 'Adb'
-                          ? selectedAdbDevice
-                          : controllerType === 'WlRoots'
-                            ? selectedWlrootsSocket
-                            : selectedWindow)
+                        (
+                          controllerType === 'Adb'
+                            ? selectedAdbDevice
+                            : controllerType === 'WlRoots'
+                              ? selectedWlrootsSocket
+                              : selectedWindow
+                        )
                           ? 'text-text-primary'
                           : 'text-text-muted',
                       )}

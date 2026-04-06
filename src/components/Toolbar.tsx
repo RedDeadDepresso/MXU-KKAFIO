@@ -199,7 +199,10 @@ export function Toolbar({ showAddPanel, onToggleAddPanel }: ToolbarProps) {
       // 检查是否有保存的设备配置
       const hasSavedDevice = Boolean(
         savedDevice &&
-        (savedDevice.adbDeviceName || savedDevice.windowName || savedDevice.wlrSocketPath || savedDevice.playcoverAddress),
+        (savedDevice.adbDeviceName ||
+          savedDevice.windowName ||
+          savedDevice.wlrSocketPath ||
+          savedDevice.playcoverAddress),
       );
 
       let isTargetConnected = instanceConnectionStatus[targetId] === 'Connected';

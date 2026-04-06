@@ -113,9 +113,7 @@ pub fn maa_get_cached_win32_windows(
 
 /// 获取缓存的 WlRoots socket 列表
 #[tauri::command]
-pub fn maa_get_cached_wlroots_sockets(
-    state: State<Arc<MaaState>>,
-) -> Result<Vec<String>, String> {
+pub fn maa_get_cached_wlroots_sockets(state: State<Arc<MaaState>>) -> Result<Vec<String>, String> {
     debug!("maa_get_cached_wlroots_sockets called");
     let cached = state
         .cached_wlroots_sockets

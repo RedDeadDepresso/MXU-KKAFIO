@@ -140,7 +140,10 @@ export function DeviceSelector({
 
   // 判断是否需要搜索设备（PlayCover 不需要搜索）
   const needsDeviceSearch =
-    controllerType === 'Adb' || controllerType === 'Win32' || controllerType === 'WlRoots' || controllerType === 'Gamepad';
+    controllerType === 'Adb' ||
+    controllerType === 'Win32' ||
+    controllerType === 'WlRoots' ||
+    controllerType === 'Gamepad';
 
   // 初始化 MaaFramework（如果还没初始化）
   const ensureMaaInitialized = async () => {
@@ -587,11 +590,13 @@ export function DeviceSelector({
               <span
                 className={clsx(
                   'truncate',
-                  (controllerType === 'Adb'
-                    ? selectedAdbDevice
-                    : controllerType === 'WlRoots'
-                      ? selectedWlrootsSocket
-                      : selectedWindow)
+                  (
+                    controllerType === 'Adb'
+                      ? selectedAdbDevice
+                      : controllerType === 'WlRoots'
+                        ? selectedWlrootsSocket
+                        : selectedWindow
+                  )
                     ? 'text-text-primary'
                     : 'text-text-muted',
                 )}

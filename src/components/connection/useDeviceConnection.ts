@@ -413,7 +413,14 @@ export function useDeviceConnection({
       return t('controller.selectDevice');
     }
     return t('controller.selectDevice');
-  }, [controllerType, selectedAdbDevice, selectedWindow, selectedWlrootsSocket, activeInstance?.savedDevice, t]);
+  }, [
+    controllerType,
+    selectedAdbDevice,
+    selectedWindow,
+    selectedWlrootsSocket,
+    activeInstance?.savedDevice,
+    t,
+  ]);
 
   // 判断是否可以连接
   const canConnect = useCallback(() => {
