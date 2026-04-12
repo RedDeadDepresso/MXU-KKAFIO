@@ -26,7 +26,8 @@ use crate::commands::{
     maa_core::{
         connect_controller_impl, destroy_instance_impl, find_adb_devices_impl,
         find_win32_windows_impl, find_wlroots_sockets_impl, get_cached_image_impl,
-        load_resource_impl, override_pipeline_impl, post_screencap_impl, run_task_impl,
+        load_resource_impl, override_pipeline_impl, post_click_impl, post_screencap_impl,
+        run_task_impl,
         stop_task_impl,
     },
     types::{AgentConfig, ControllerConfig, MaaState, TaskConfig},
@@ -242,6 +243,10 @@ pub async fn start_web_server(
         .route(
             "/maa/instances/:id/agent/stop",
             axum::routing::post(handle_stop_agent),
+        )
+        .route(
+            "/maa/instances/:id/click",
+            axum::routing::post(handle_post_click),
         )
         .route("/maa/instances/:id/screenshot", get(handle_get_screenshot))
         .route(
@@ -985,6 +990,41 @@ async fn handle_stop_agent(
 ) -> impl IntoResponse {
     match stop_agent_impl(&state.maa_state, &instance_id) {
         Ok(()) => Json(serde_json::json!({ "ok": true })).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": e })),
+        )
+            .into_response(),
+    }
+}
+
+/// POST /api/maa/instances/:id/click
+///
+/// Body: `{ "x": 100, "y": 200 }`
+#[derive(serde::Deserialize)]
+struct PostClickRequest {
+    x: i32,
+    y: i32,
+}
+
+async fn handle_post_click(
+    State(state): State<WebState>,
+    axum::extract::Path(instance_id): axum::extract::Path<String>,
+    body: Result<Json<PostClickRequest>, axum::extract::rejection::JsonRejection>,
+) -> impl IntoResponse {
+    let body = match body {
+        Ok(Json(b)) => b,
+        Err(err) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({ "error": err.body_text() })),
+            )
+                .into_response();
+        }
+    };
+
+    match post_click_impl(&state.maa_state, &instance_id, body.x, body.y) {
+        Ok(id) => (StatusCode::OK, Json(serde_json::json!({ "clickId": id }))).into_response(),
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({ "error": e })),
