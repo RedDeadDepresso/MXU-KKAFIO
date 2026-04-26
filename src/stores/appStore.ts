@@ -130,7 +130,7 @@ export const useAppStore = create<AppState>()(
 
     // 主题和语言
     theme: 'light',
-    accentColor: 'emerald',
+    accentColor: 'darkcyan',
     language: 'system',
     backgroundImage: undefined,
     backgroundOpacity: 50,
@@ -1143,7 +1143,7 @@ export const useAppStore = create<AppState>()(
         }
       });
 
-      const configAccentColor = (config.settings.accentColor as AccentColor) || 'deepsea';
+      const configAccentColor = (config.settings.accentColor as AccentColor) || 'kkafio';
 
       // WebUI 模式下：缓存后端外观 & 布局设置，使用 localStorage 本地值
       const isWebUI = !isTauri();

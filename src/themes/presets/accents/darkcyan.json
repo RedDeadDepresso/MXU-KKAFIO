@@ -1,0 +1,14 @@
+{
+  "name": "darkcyan",
+  "label": {
+    "zh-CN": "珊瑚青",
+    "zh-TW": "珊瑚青",
+    "en-US": "Dark Cyan",
+    "ja-JP": "コーラルシアン",
+    "ko-KR": "코랄 시안"
+  },
+  "default": "#009FAA",
+  "hover": "#008F99",
+  "light": "#00BFCC",
+  "lightDark": "#006F77"
+}
