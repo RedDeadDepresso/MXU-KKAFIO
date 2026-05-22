@@ -443,7 +443,6 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
       projectInterface,
       currentControllerName,
       currentResourceName,
-      instance?.globalOptionValues,
     );
     // Pipeline override not applicable without MaaFramework
     void pipelineOverride;

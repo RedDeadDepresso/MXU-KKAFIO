@@ -23,7 +23,6 @@ export interface ProjectInterface {
   task: TaskItem[];
   option?: Record<string, OptionDefinition>;
   /** v2.3.0: 全局选项配置，参与到所有任务的 pipeline override 中 */
-  global_option?: string[];
   /** v2.2.0: 导入其他 PI 文件的路径数组 */
   import?: string[];
   /** v2.3.0: 预设配置 */
@@ -346,16 +345,13 @@ export interface Instance {
   name: string;
   controllerId?: string;
   resourceId?: string;
-  // 保存的控制器和资源名称
   controllerName?: string;
   resourceName?: string;
-  // 保存的设备信息
   savedDevice?: SavedDeviceInfo;
   selectedTasks: SelectedTask[];
   isRunning: boolean;
-  // 全局选项值（如 GamePath），跨任务共享
+  /** Per-instance settings shown at the top of the task list (GamePath, GameType) */
   globalOptionValues?: Record<string, OptionValue>;
-  // 定时执行策略列表
   schedulePolicies?: SchedulePolicy[];
   preActions?: ActionConfig[];
 }

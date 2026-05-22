@@ -239,7 +239,6 @@ export const generateTaskPipelineOverride = (
   projectInterface: ProjectInterface | null,
   controllerName?: string,
   resourceName?: string,
-  globalOptionValues?: Record<string, import('@/types/interface').OptionValue>,
 ): string => {
   // 处理 MXU 内置特殊任务
   if (isMxuSpecialTask(selectedTask.taskName)) {
@@ -258,27 +257,9 @@ export const generateTaskPipelineOverride = (
   }
 
   if (projectInterface.option) {
-    // v2.3.0 覆盖顺序：global_option → resource.option → controller.option → task.option
-    // 1. 全局选项 — read from globalOptionValues (instance-level), fall back to task optionValues
-    if (projectInterface.global_option) {
-      for (const optionKey of projectInterface.global_option) {
-        // Merge: globalOptionValues takes precedence over per-task values
-        const mergedValues = {
-          ...selectedTask.optionValues,
-          ...(globalOptionValues ?? {}),
-        };
-        collectOptionOverrides(
-          optionKey,
-          mergedValues,
-          overrides,
-          projectInterface.option,
-          controllerName,
-          resourceName,
-        );
-      }
-    }
+    // v2.3.0 覆盖顺序：resource.option → controller.option → task.option
 
-    // 2. 资源包级选项
+    // 1. 资源包级选项
     if (resourceName) {
       const resourceDef = projectInterface.resource.find((r) => r.name === resourceName);
       if (resourceDef?.option) {

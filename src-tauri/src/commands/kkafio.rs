@@ -42,11 +42,37 @@ pub struct KkafioOutputEvent {
 fn emit_line(app: &tauri::AppHandle, stream: &str, line: &str) {
     let payload = KkafioOutputEvent {
         stream: stream.to_string(),
-        line: line.to_string(),
+        line: strip_ansi(line),
     };
     if let Err(e) = app.emit("kkafio-output", payload) {
         warn!("[kkafio] failed to emit kkafio-output: {}", e);
     }
+}
+
+/// Remove ANSI escape sequences (e.g. `\x1b[94m`, `\x1b[0m`) from a line.
+/// The Python logger wraps every line in colour codes; the frontend log panel
+/// does its own colouring based on the status keyword, so raw codes are noise.
+fn strip_ansi(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = String::with_capacity(s.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        // ESC [ ... m  — the only form the Python logger produces
+        if bytes[i] == 0x1b && i + 1 < bytes.len() && bytes[i + 1] == b'[' {
+            i += 2; // skip ESC [
+            // skip digits and semicolons until we hit the final letter
+            while i < bytes.len() && (bytes[i].is_ascii_digit() || bytes[i] == b';') {
+                i += 1;
+            }
+            if i < bytes.len() {
+                i += 1; // skip the final command letter (e.g. 'm')
+            }
+        } else {
+            out.push(bytes[i] as char);
+            i += 1;
+        }
+    }
+    out
 }
 
 /// Resolve which executable + args to use.
@@ -415,20 +441,27 @@ pub struct RunGameResult {
 }
 
 /// Try to launch Koikatsu from `game_path`.
-/// Checks for "Koikatsu Party.exe" first, then "Koikatsu.exe".
-/// Launches the found exe as a detached process (no window parenting).
+/// `game_type` selects the expected exe name:
+///   "KoikatsuParty"    → "Koikatsu Party.exe"
+///   "Koikatsu"         → "Koikatsu.exe"
+///   "KoikatsuSunshine" → "KoikatsuSunshine.exe" | "Koikatsu Sunshine.exe"
+/// Falls back to scanning all known exe names if the primary is not found.
 #[tauri::command]
-pub fn kkafio_run_game(game_path: String) -> RunGameResult {
+pub fn kkafio_run_game(game_path: String, game_type: Option<String>) -> RunGameResult {
     use std::path::Path;
     use std::process::Command;
 
     let base = Path::new(&game_path);
 
-    let candidates = ["Koikatsu Party.exe", "Koikatsu.exe"];
-    let exe_path = candidates
-        .iter()
-        .map(|name| base.join(name))
-        .find(|p| p.exists());
+    // Build candidate list — primary exe first based on game_type, then fallbacks
+    let mut candidates: Vec<&str> = Vec::new();
+    match game_type.as_deref().unwrap_or("KoikatsuParty") {
+        "Koikatsu"         => candidates.extend(["Koikatsu.exe", "Koikatsu Party.exe", "KoikatsuSunshine.exe", "Koikatsu Sunshine.exe"]),
+        "KoikatsuSunshine" => candidates.extend(["KoikatsuSunshine.exe", "Koikatsu Sunshine.exe", "Koikatsu Party.exe", "Koikatsu.exe"]),
+        _                  => candidates.extend(["Koikatsu Party.exe", "Koikatsu.exe", "KoikatsuSunshine.exe", "Koikatsu Sunshine.exe"]),
+    }
+
+    let exe_path = candidates.iter().map(|name| base.join(name)).find(|p| p.exists());
 
     let exe = match exe_path {
         Some(p) => p,
@@ -436,10 +469,7 @@ pub fn kkafio_run_game(game_path: String) -> RunGameResult {
             return RunGameResult {
                 ok: false,
                 exe: String::new(),
-                error: format!(
-                    "Neither 'Koikatsu Party.exe' nor 'Koikatsu.exe' found in '{}'",
-                    game_path
-                ),
+                error: format!("No Koikatsu executable found in '{}'", game_path),
             };
         }
     };

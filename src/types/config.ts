@@ -53,15 +53,10 @@ export interface SavedInstance {
   name: string;
   controllerId?: string;
   resourceId?: string;
-  // 保存的控制器和资源名称
   controllerName?: string;
   resourceName?: string;
-  // 保存的设备信息，用于自动重连
   savedDevice?: SavedDeviceInfo;
   tasks: SavedTask[];
-  // 全局选项值（global_option，跨所有任务共享，如 GamePath）
-  globalOptionValues?: Record<string, import('./interface').OptionValue>;
-  // 定时执行策略列表
   schedulePolicies?: SchedulePolicy[];
   preActions?: ActionConfig[];
   /** @deprecated 旧版单前置程序字段，仅用于向后兼容读取 */
@@ -170,14 +165,11 @@ export interface MxuConfig {
   version: string;
   instances: SavedInstance[];
   settings: AppSettings;
-  recentlyClosed?: RecentlyClosedInstance[]; // 最近关闭的实例列表（最多30条）
-  interfaceTaskSnapshot?: string[]; // 保存时 interface.json 中的任务名列表快照，用于检测新增任务
-  newTaskNames?: string[]; // 用户尚未查看的新增任务名称列表
-  /** 自定义强调色列表 */
+  recentlyClosed?: RecentlyClosedInstance[];
+  interfaceTaskSnapshot?: string[];
+  newTaskNames?: string[];
   customAccents?: CustomAccent[];
-  /** 最后激活的实例 ID */
   lastActiveInstanceId?: string;
-  /** 是否已完成预设初始化（首次启动自动创建预设 tab） */
   presetInitialized?: boolean;
 }
 
