@@ -57,6 +57,8 @@ export interface SavedInstance {
   resourceName?: string;
   savedDevice?: SavedDeviceInfo;
   tasks: SavedTask[];
+  /** Per-instance settings shown at the top of the task list (GamePath, GameType) */
+  globalOptionValues?: Record<string, import('./interface').OptionValue>;
   schedulePolicies?: SchedulePolicy[];
   preActions?: ActionConfig[];
   /** @deprecated 旧版单前置程序字段，仅用于向后兼容读取 */
