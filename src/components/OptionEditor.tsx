@@ -270,6 +270,47 @@ function ActionButtonRow({
         }
         setTaskOptionValue(instanceId, taskId, 'GroupCharaResponse', { type: 'textarea', text: clean });
         toast.success('LLM response saved');
+
+      } else if (action === 'rename_chara_copy') {
+        // Scan folder and build the rename prompt+JSON, copy to clipboard
+        const store = useAppStore.getState();
+        const inst  = store.instances.find((i) => i.id === instanceId);
+        const task  = inst?.selectedTasks.find((tk) => tk.id === taskId);
+        const inputVal = task?.optionValues['InputPath'];
+        const folder = (inputVal?.type === 'folder' && inputVal.path) ? inputVal.path : basePath;
+
+        const { invoke } = await import('@tauri-apps/api/core');
+        const result = await invoke<{ text: string; error: string }>('kkafio_rename_chara_export', {
+          cwd: basePath,
+          folder,
+        });
+        if (result.error) {
+          toast.error(`Copy failed: ${result.error}`);
+        } else if (!result.text) {
+          toast.success('All characters already known — nothing to send to LLM.');
+        } else {
+          await navigator.clipboard.writeText(result.text);
+          toast.success('Rename prompt + JSON copied to clipboard');
+        }
+
+      } else if (action === 'rename_chara_paste') {
+        const clipText = await navigator.clipboard.readText();
+        if (!clipText.trim()) {
+          toast.error('Clipboard is empty.');
+          return;
+        }
+
+        let clean = clipText.trim();
+        if (clean.startsWith('```')) clean = clean.split('\n').slice(1).join('\n');
+        if (clean.endsWith('```'))   clean = clean.split('\n').slice(0, -1).join('\n');
+        clean = clean.trim();
+
+        try { JSON.parse(clean); } catch {
+          toast.error('Clipboard does not contain valid JSON. Make sure you copied the full LLM response.');
+          return;
+        }
+        setTaskOptionValue(instanceId, taskId, 'RenameCharaResponse', { type: 'textarea', text: clean });
+        toast.success('LLM rename response saved');
       }
     } catch (e) {
       toast.error(`Action failed: ${e}`);

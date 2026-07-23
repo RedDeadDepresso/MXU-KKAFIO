@@ -157,6 +157,7 @@ pub fn run() {
             commands::kkafio::kkafio_stop,
             commands::kkafio::kkafio_is_running,
             commands::kkafio::kkafio_group_chara_export,
+            commands::kkafio::kkafio_rename_chara_export,
             commands::kkafio::kkafio_trash,
             commands::kkafio::kkafio_run_game,
             // File operation commands

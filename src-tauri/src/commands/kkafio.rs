@@ -358,8 +358,92 @@ pub async fn kkafio_group_chara_export(
 }
 
 // ============================================================================
-// Trash / Recycle-bin commands
+// Rename-chara export command
 // ============================================================================
+
+/// Result returned by kkafio_rename_chara_export.
+#[derive(serde::Serialize)]
+pub struct RenameCharaExportResult {
+    /// The prompt + JSON text ready to be placed on the clipboard.
+    /// Empty when there is nothing to translate (all chars already cached).
+    pub text: String,
+    /// Non-empty when an error occurred.
+    pub error: String,
+}
+
+/// Run `kkafio_cli rename-chara --export --input <folder>` synchronously
+/// and return stdout as the clipboard text.
+#[tauri::command]
+pub async fn kkafio_rename_chara_export(
+    cwd: String,
+    folder: String,
+) -> RenameCharaExportResult {
+    use std::process::Command;
+
+    let (program, mut base_args) = match resolve_cli(&cwd) {
+        Ok(pair) => pair,
+        Err(e) => {
+            return RenameCharaExportResult { text: String::new(), error: e };
+        }
+    };
+
+    base_args.pop(); // remove "run"
+    base_args.extend([
+        "rename-chara".to_string(),
+        "--export".to_string(),
+        "--input".to_string(),
+        folder,
+    ]);
+
+    log::info!("[kkafio] rename-chara export: {} {:?}", program, base_args);
+
+    #[cfg(windows)]
+    let output = {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        Command::new(&program)
+            .args(&base_args)
+            .current_dir(&cwd)
+            .env("PYTHONIOENCODING", "utf-8")
+            .env("PYTHONUTF8", "1")
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+    };
+
+    #[cfg(not(windows))]
+    let output = Command::new(&program)
+        .args(&base_args)
+        .current_dir(&cwd)
+        .env("PYTHONIOENCODING", "utf-8")
+        .env("PYTHONUTF8", "1")
+        .output();
+
+    let output = match output {
+        Ok(o) => o,
+        Err(e) => {
+            return RenameCharaExportResult {
+                text: String::new(),
+                error: format!("Failed to run CLI: {}", e),
+            };
+        }
+    };
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        let error  = if !stderr.is_empty() { stderr } else { stdout };
+        let error  = if error.is_empty() {
+            format!("CLI exited with code {:?}", output.status.code())
+        } else { error };
+        return RenameCharaExportResult { text: String::new(), error };
+    }
+
+    let stdout = strip_ansi(
+        &String::from_utf8_lossy(&output.stdout).trim().to_string()
+    );
+    // stdout is either empty (all cached) or "PROMPT_TEMPLATE\n{...json...}"
+    RenameCharaExportResult { text: stdout, error: String::new() }
+}
 
 /// Result of a trash operation.
 #[derive(serde::Serialize)]
