@@ -50,26 +50,25 @@ fn emit_line(app: &tauri::AppHandle, stream: &str, line: &str) {
 }
 
 /// Remove ANSI escape sequences (e.g. `\x1b[94m`, `\x1b[0m`) from a line.
-/// The Python logger wraps every line in colour codes; the frontend log panel
-/// does its own colouring based on the status keyword, so raw codes are noise.
+/// Operates on the string as a char iterator so multi-byte UTF-8 characters
+/// are never corrupted.
 fn strip_ansi(s: &str) -> String {
-    let bytes = s.as_bytes();
     let mut out = String::with_capacity(s.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        // ESC [ ... m  — the only form the Python logger produces
-        if bytes[i] == 0x1b && i + 1 < bytes.len() && bytes[i + 1] == b'[' {
-            i += 2; // skip ESC [
-            // skip digits and semicolons until we hit the final letter
-            while i < bytes.len() && (bytes[i].is_ascii_digit() || bytes[i] == b';') {
-                i += 1;
-            }
-            if i < bytes.len() {
-                i += 1; // skip the final command letter (e.g. 'm')
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        // ESC [ ... m — the only form the Python logger produces
+        if c == '\x1b' && chars.peek() == Some(&'[') {
+            chars.next(); // consume '['
+            // skip digits and semicolons until the final command letter
+            loop {
+                match chars.peek() {
+                    Some(&d) if d.is_ascii_digit() || d == ';' => { chars.next(); }
+                    Some(_) => { chars.next(); break; } // consume command letter
+                    None    => break,
+                }
             }
         } else {
-            out.push(bytes[i] as char);
-            i += 1;
+            out.push(c);
         }
     }
     out
