@@ -371,11 +371,13 @@ pub struct RenameCharaExportResult {
 }
 
 /// Run `kkafio_cli rename-chara --export --input <folder>` synchronously
-/// and return stdout as the clipboard text.
+/// and return the user prompt spliced in front of the JSON (same pattern as
+/// kkafio_group_chara_export).
 #[tauri::command]
 pub async fn kkafio_rename_chara_export(
     cwd: String,
     folder: String,
+    prompt: String,
 ) -> RenameCharaExportResult {
     use std::process::Command;
 
@@ -440,8 +442,17 @@ pub async fn kkafio_rename_chara_export(
     let stdout = strip_ansi(
         &String::from_utf8_lossy(&output.stdout).trim().to_string()
     );
-    // stdout is either empty (all cached) or "PROMPT_TEMPLATE\n{...json...}"
-    RenameCharaExportResult { text: stdout, error: String::new() }
+
+    if stdout.is_empty() {
+        // All characters already cached — nothing to send
+        return RenameCharaExportResult { text: String::new(), error: String::new() };
+    }
+
+    // Splice user prompt in front of the JSON block (same pattern as group_chara_export)
+    let json_start = stdout.find('{').unwrap_or(0);
+    let json_only  = &stdout[json_start..];
+    let full_text  = format!("{}\n{}", prompt.trim_end(), json_only);
+    RenameCharaExportResult { text: full_text, error: String::new() }
 }
 
 /// Result of a trash operation.

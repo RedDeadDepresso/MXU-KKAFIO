@@ -276,13 +276,16 @@ function ActionButtonRow({
         const store = useAppStore.getState();
         const inst  = store.instances.find((i) => i.id === instanceId);
         const task  = inst?.selectedTasks.find((tk) => tk.id === taskId);
-        const inputVal = task?.optionValues['InputPath'];
+        const inputVal  = task?.optionValues['InputPath'];
+        const promptVal = task?.optionValues['RenameCharaPrompt'];
         const folder = (inputVal?.type === 'folder' && inputVal.path) ? inputVal.path : basePath;
+        const prompt = promptVal?.type === 'textarea' ? promptVal.text : '';
 
         const { invoke } = await import('@tauri-apps/api/core');
         const result = await invoke<{ text: string; error: string }>('kkafio_rename_chara_export', {
           cwd: basePath,
           folder,
+          prompt,
         });
         if (result.error) {
           toast.error(`Copy failed: ${result.error}`);
