@@ -270,50 +270,6 @@ function ActionButtonRow({
         }
         setTaskOptionValue(instanceId, taskId, 'GroupCharaResponse', { type: 'textarea', text: clean });
         toast.success('LLM response saved');
-
-      } else if (action === 'rename_chara_copy') {
-        // Scan folder and build the rename prompt+JSON, copy to clipboard
-        const store = useAppStore.getState();
-        const inst  = store.instances.find((i) => i.id === instanceId);
-        const task  = inst?.selectedTasks.find((tk) => tk.id === taskId);
-        const inputVal  = task?.optionValues['InputPath'];
-        const promptVal = task?.optionValues['RenameCharaPrompt'];
-        const folder = (inputVal?.type === 'folder' && inputVal.path) ? inputVal.path : basePath;
-        const prompt = promptVal?.type === 'textarea' ? promptVal.text : '';
-
-        const { invoke } = await import('@tauri-apps/api/core');
-        const result = await invoke<{ text: string; error: string }>('kkafio_rename_chara_export', {
-          cwd: basePath,
-          folder,
-          prompt,
-        });
-        if (result.error) {
-          toast.error(`Copy failed: ${result.error}`);
-        } else if (!result.text) {
-          toast.success('All characters already known — nothing to send to LLM.');
-        } else {
-          await navigator.clipboard.writeText(result.text);
-          toast.success('Rename prompt + JSON copied to clipboard');
-        }
-
-      } else if (action === 'rename_chara_paste') {
-        const clipText = await navigator.clipboard.readText();
-        if (!clipText.trim()) {
-          toast.error('Clipboard is empty.');
-          return;
-        }
-
-        let clean = clipText.trim();
-        if (clean.startsWith('```')) clean = clean.split('\n').slice(1).join('\n');
-        if (clean.endsWith('```'))   clean = clean.split('\n').slice(0, -1).join('\n');
-        clean = clean.trim();
-
-        try { JSON.parse(clean); } catch {
-          toast.error('Clipboard does not contain valid JSON. Make sure you copied the full LLM response.');
-          return;
-        }
-        setTaskOptionValue(instanceId, taskId, 'RenameCharaResponse', { type: 'textarea', text: clean });
-        toast.success('LLM rename response saved');
       }
     } catch (e) {
       toast.error(`Action failed: ${e}`);
@@ -1058,15 +1014,12 @@ export function OptionEditor({
           <div className="rounded-md border border-border divide-y divide-border overflow-hidden">
             {filePaths.map((p) => (
               <div key={p} className="flex items-center gap-2 px-2.5 py-1.5 group hover:bg-bg-hover">
-                {/* Show only the filename, full path on hover tooltip */}
+                {/* Show only the filename; full path visible via native tooltip on hover */}
                 <span
                   className="flex-1 min-w-0 text-xs text-text-secondary font-mono truncate"
                   title={p}
                 >
                   {p.replace(/\\/g, '/').split('/').pop() ?? p}
-                  <span className="text-text-muted ml-1 hidden group-hover:inline">
-                    — {p.replace(/\\/g, '/').split('/').slice(0, -1).join('/')}
-                  </span>
                 </span>
                 <button
                   type="button"
