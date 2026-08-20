@@ -191,6 +191,88 @@ function ClearFolderDialog({
 // Handles action_button option type (e.g. GroupChara Copy/Paste steps)
 // ============================================================================
 
+// --- shared helpers -------------------------------------------------
+
+function cleanClipboardJson(raw: string): string | null {
+  let clean = raw.trim();
+  if (clean.startsWith('```')) clean = clean.split('\n').slice(1).join('\n');
+  if (clean.endsWith('```')) clean = clean.split('\n').slice(0, -1).join('\n');
+  clean = clean.trim();
+  try {
+    JSON.parse(clean);
+  } catch {
+    return null;
+  }
+  return clean;
+}
+
+async function pasteJsonFromClipboard(
+  responseKey: string,
+  instanceId: string,
+  taskId: string,
+  setTaskOptionValue: (instanceId: string, taskId: string, key: string, value: import('@/types/interface').OptionValue) => void,
+  successMessage: string,
+) {
+  const clipText = await navigator.clipboard.readText();
+  if (!clipText.trim()) {
+    toast.error('Clipboard is empty.');
+    return;
+  }
+
+  const clean = cleanClipboardJson(clipText);
+  if (clean === null) {
+    toast.error('Clipboard does not contain valid JSON. Make sure you copied the full LLM response.');
+    return;
+  }
+
+  setTaskOptionValue(instanceId, taskId, responseKey, { type: 'textarea', text: clean });
+  toast.success(successMessage);
+}
+
+function getStoreTaskValues(instanceId: string, taskId: string, keys: string[]) {
+  const store = useAppStore.getState();
+  const inst = store.instances.find((i) => i.id === instanceId);
+  const task = inst?.selectedTasks.find((tk) => tk.id === taskId);
+  const values: Record<string, import('@/types/interface').OptionValue | undefined> = {};
+  for (const key of keys) values[key] = task?.optionValues[key];
+  return values;
+}
+
+function getTextareaText(value: import('@/types/interface').OptionValue | undefined): string {
+  return value?.type === 'textarea' ? value.text : '';
+}
+
+function getFolderPath(value: import('@/types/interface').OptionValue | undefined, fallback: string): string {
+  return value?.type === 'folder' && value.path ? value.path : fallback;
+}
+
+async function copyExportToClipboard(
+  invokeCmd: string,
+  basePath: string,
+  folder: string,
+  prompt: string,
+  successMessage: string,
+  emptyMessage?: string,
+) {
+  const { invoke } = await import('@tauri-apps/api/core');
+  const result = await invoke<{ text: string; error: string }>(invokeCmd, {
+    cwd: basePath,
+    folder,
+    prompt,
+  });
+
+  if (result.error) {
+    toast.error(`Copy failed: ${result.error}`);
+  } else if (!result.text && emptyMessage) {
+    toast.success(emptyMessage);
+  } else {
+    await navigator.clipboard.writeText(result.text);
+    toast.success(successMessage);
+  }
+}
+
+// --- component --------------------------------------------------------
+
 function ActionButtonRow({
   optionDef,
   optionLabel,
@@ -229,47 +311,29 @@ function ActionButtonRow({
     try {
       const action = optionDef.action;
 
-      if (action === 'group_chara_copy') {
-        // Read prompt from sibling GroupCharaPrompt option
-        const store = useAppStore.getState();
-        const inst  = store.instances.find((i) => i.id === instanceId);
-        const task  = inst?.selectedTasks.find((tk) => tk.id === taskId);
-        const promptVal = task?.optionValues['GroupCharaPrompt'];
-        const prompt = promptVal?.type === 'textarea' ? promptVal.text : '';
-        const inputVal  = task?.optionValues['InputPath'];
-        const folder = (inputVal?.type === 'folder' && inputVal.path) ? inputVal.path : basePath;
+      if (action === 'group_chara_copy' || action === 'rename_chara_copy') {
+        const isRename = action === 'rename_chara_copy';
+        const promptKey = isRename ? 'RenameCharaPrompt' : 'GroupCharaPrompt';
+        const { InputPath, [promptKey]: promptVal } = getStoreTaskValues(instanceId, taskId, ['InputPath', promptKey]);
 
-        const { invoke } = await import('@tauri-apps/api/core');
-        const result = await invoke<{ text: string; error: string }>('kkafio_group_chara_export', {
-          cwd: basePath,
-          folder,
-          prompt,
-        });
-        if (result.error) {
-          toast.error(`Copy failed: ${result.error}`);
-        } else {
-          await navigator.clipboard.writeText(result.text);
-          toast.success('Prompt + JSON copied to clipboard');
-        }
+        await copyExportToClipboard(
+          isRename ? 'kkafio_rename_chara_export' : 'kkafio_group_chara_export',
+          basePath,
+          getFolderPath(InputPath, basePath),
+          getTextareaText(promptVal),
+          isRename ? 'Rename prompt + JSON copied to clipboard' : 'Prompt + JSON copied to clipboard',
+          isRename ? 'All characters already known — nothing to send to LLM.' : undefined,
+        );
 
-      } else if (action === 'group_chara_paste') {
-        const clipText = await navigator.clipboard.readText();
-        if (!clipText.trim()) {
-          toast.error('Clipboard is empty.');
-          return;
-        }
-
-        let clean = clipText.trim();
-        if (clean.startsWith('```')) clean = clean.split('\n').slice(1).join('\n');
-        if (clean.endsWith('```'))   clean = clean.split('\n').slice(0, -1).join('\n');
-        clean = clean.trim();
-
-        try { JSON.parse(clean); } catch {
-          toast.error('Clipboard does not contain valid JSON. Make sure you copied the full LLM response.');
-          return;
-        }
-        setTaskOptionValue(instanceId, taskId, 'GroupCharaResponse', { type: 'textarea', text: clean });
-        toast.success('LLM response saved');
+      } else if (action === 'group_chara_paste' || action === 'rename_chara_paste') {
+        const isRename = action === 'rename_chara_paste';
+        await pasteJsonFromClipboard(
+          isRename ? 'RenameCharaResponse' : 'GroupCharaResponse',
+          instanceId,
+          taskId,
+          setTaskOptionValue,
+          isRename ? 'LLM rename response saved' : 'LLM response saved',
+        );
       }
     } catch (e) {
       toast.error(`Action failed: ${e}`);
