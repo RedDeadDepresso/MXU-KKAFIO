@@ -5,14 +5,7 @@ import {
   flushSaveConfig,
   type DownloadProgress,
 } from '@/stores/appStore';
-import {
-  TitleBar,
-  TabBar,
-  TaskList,
-  AddTaskPanel,
-  Toolbar,
-  LogsPanel,
-} from '@/components';
+import { TitleBar, TabBar, TaskList, AddTaskPanel, Toolbar, LogsPanel } from '@/components';
 import { BackgroundOverlay } from '@/components/BackgroundOverlay';
 import type { BadPathType } from '@/components';
 import {
@@ -23,6 +16,7 @@ import {
   markSelfSave,
   resolveI18nText,
   checkAndPrepareDownload,
+  checkUpdateFromGitHub,
   proxySettingsForUpdateDownload,
 } from '@/services';
 import { loadIconAsDataUrl } from '@/services/contentResolver';
@@ -152,9 +146,6 @@ function App() {
 
   // Enable KKAFIO output log listener
   useKkafioLogger();
-
-
-
 
   const {
     setProjectInterface,
@@ -688,7 +679,6 @@ function App() {
         log.warn('恢复运行日志失败:', err);
       }
 
-
       log.info('加载完成, 项目:', result.interface.name);
       setLoadingState('success');
       // 完成配置加载后，允许后续状态变更自动保存
@@ -905,7 +895,8 @@ function App() {
       }
 
       // 自动检查更新并下载（调试版本跳过，MXU 开发模式跳过）
-      if (result.interface.mirrorchyan_rid && result.interface.version) {
+      const hasUpdateSource = result.interface.mirrorchyan_rid || result.interface.github;
+      if (hasUpdateSource && result.interface.version) {
         if (import.meta.env.DEV) {
           log.info('MXU 开发模式，跳过自动更新检查');
         } else if (isDebugVersion(result.interface.version)) {
@@ -913,17 +904,27 @@ function App() {
         } else {
           const appState = useAppStore.getState();
           try {
-            const updateResult = await checkAndPrepareDownload({
-              resourceId: result.interface.mirrorchyan_rid,
-              currentVersion: result.interface.version,
-              cdk: appState.mirrorChyanSettings.cdk || undefined,
-              channel: appState.mirrorChyanSettings.channel,
-              userAgent: 'MXU',
-              githubUrl: result.interface.github,
-              githubPat: appState.mirrorChyanSettings.githubPat || undefined,
-              proxyUrl: appState.proxySettings?.url,
-              projectName: result.interface.name,
-            });
+            let updateResult;
+            if (result.interface.mirrorchyan_rid) {
+              updateResult = await checkAndPrepareDownload({
+                resourceId: result.interface.mirrorchyan_rid,
+                currentVersion: result.interface.version,
+                cdk: appState.mirrorChyanSettings.cdk || undefined,
+                channel: appState.mirrorChyanSettings.channel,
+                userAgent: 'MXU',
+                githubUrl: result.interface.github,
+                githubPat: appState.mirrorChyanSettings.githubPat || undefined,
+                proxyUrl: appState.proxySettings?.url,
+                projectName: result.interface.name,
+              });
+            } else {
+              updateResult = await checkUpdateFromGitHub({
+                githubUrl: result.interface.github || '',
+                currentVersion: result.interface.version,
+                proxyUrl: appState.proxySettings?.url,
+                projectName: result.interface.name,
+              });
+            }
             if (updateResult) {
               setUpdateInfo(updateResult);
               if (updateResult.hasUpdate) {
@@ -1507,7 +1508,6 @@ function App() {
     };
   }, []);
 
-
   const toaster = (
     <Toaster
       theme={resolveThemeMode(theme)}
@@ -1526,7 +1526,6 @@ function App() {
       >
         <BackgroundOverlay imageDataUrl={backgroundImageDataUrl} opacity={backgroundOpacity} />
         <div className="relative z-10 h-full flex flex-col">
-
           <TitleBar />
           <WebUIBetaBanner />
           {/* 安装确认模态框 - 在设置页面也需要能弹出 */}
@@ -1610,7 +1609,6 @@ function App() {
       <BackgroundOverlay imageDataUrl={backgroundImageDataUrl} opacity={backgroundOpacity} />
       <div className="relative z-10 h-full flex flex-col">
         {/* WebUI 模式下的连接断开覆盖层 */}
-
 
         {/* 自定义标题栏 */}
         <TitleBar />
