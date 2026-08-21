@@ -819,6 +819,96 @@ export async function downloadUpdate(
   }
 }
 
+export interface CheckUpdateFromGitHubOptions {
+  githubUrl: string;
+  currentVersion: string;
+  githubPat?: string;
+  projectName?: string;
+  proxyUrl?: string;
+}
+
+/**
+ * Check for updates directly from GitHub Releases (no MirrorChyan needed).
+ * Fetches /releases/latest, compares tag_name to currentVersion, and
+ * resolves the best matching asset as the download URL.
+ */
+export async function checkUpdateFromGitHub(
+  options: CheckUpdateFromGitHubOptions,
+): Promise<UpdateInfo | null> {
+  const { githubUrl, currentVersion, githubPat, projectName, proxyUrl } = options;
+
+  const parsed = parseGitHubUrl(githubUrl);
+  if (!parsed) {
+    log.warn('checkUpdateFromGitHub: cannot parse GitHub URL:', githubUrl);
+    return null;
+  }
+
+  const { owner, repo } = parsed;
+
+  try {
+    // Use the Rust command to fetch latest release (handles proxy + PAT)
+    const release = await invoke<GitHubRelease | null>('get_github_release_by_version', {
+      owner,
+      repo,
+      targetVersion: 'latest',
+      githubPat,
+      proxyUrl,
+    });
+
+    if (!release) {
+      log.warn('checkUpdateFromGitHub: no release returned from GitHub API');
+      return null;
+    }
+
+    const latestVersion = release.tag_name;
+    const hasUpdate = compareVersions(latestVersion, currentVersion) > 0;
+
+    log.info(
+      `checkUpdateFromGitHub: latest=${latestVersion}, current=${currentVersion}, hasUpdate=${hasUpdate}`,
+    );
+
+    if (!hasUpdate) {
+      return { hasUpdate: false, versionName: latestVersion, releaseNote: release.body || '' };
+    }
+
+    // Try to find matching asset
+    const asset = matchGitHubAsset(release.assets);
+    if (asset) {
+      return {
+        hasUpdate: true,
+        versionName: latestVersion,
+        downloadUrl: asset.browser_download_url,
+        fileSize: asset.size,
+        filename: asset.name,
+        downloadSource: 'github',
+        releaseNote: release.body || '',
+      };
+    }
+
+    // No matching asset found — try direct URL construction
+    if (projectName) {
+      const direct = await tryDirectDownloadUrls(owner, repo, projectName, latestVersion);
+      if (direct) {
+        return {
+          hasUpdate: true,
+          versionName: latestVersion,
+          downloadUrl: direct.url,
+          fileSize: 0,
+          filename: direct.filename,
+          downloadSource: 'github',
+          releaseNote: release.body || '',
+        };
+      }
+    }
+
+    // Update available but no download URL
+    return { hasUpdate: true, versionName: latestVersion, releaseNote: release.body || '' };
+  } catch (error) {
+    log.error('checkUpdateFromGitHub: error:', error);
+    return null;
+  }
+}
+
 export interface CheckAndDownloadOptions extends CheckUpdateOptions {
   githubUrl?: string;
   githubPat?: string; // GitHub Personal Access Token

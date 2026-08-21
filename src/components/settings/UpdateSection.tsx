@@ -16,9 +16,10 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 
-import { useAppStore } from '@/stores/appStore';
+import { UpdateInfo, useAppStore } from '@/stores/appStore';
 import {
   checkAndPrepareDownload,
+  checkUpdateFromGitHub,
   openMirrorChyanWebsite,
   downloadUpdate,
   getUpdateSavePath,
@@ -303,8 +304,8 @@ export function UpdateSection() {
 
   // 检查更新
   const handleCheckUpdate = async () => {
-    if (!projectInterface?.mirrorchyan_rid || !projectInterface?.version) {
-      addDebugLog('未配置 mirrorchyan_rid 或 version，无法检查更新');
+    if (!projectInterface?.version) {
+      addDebugLog('未配置 version，无法检查更新');
       return;
     }
 
@@ -315,19 +316,37 @@ export function UpdateSection() {
 
     setCheckFailed(false);
     setUpdateCheckLoading(true);
-    addDebugLog(`开始检查更新... (频道: ${mirrorChyanSettings.channel})`);
 
     try {
-      const result = await checkAndPrepareDownload({
-        resourceId: projectInterface.mirrorchyan_rid,
-        currentVersion: projectInterface.version,
-        cdk: mirrorChyanSettings.cdk || undefined,
-        channel: mirrorChyanSettings.channel,
-        userAgent: 'MXU',
-        githubUrl: projectInterface.github,
-        proxyUrl: proxySettings?.url,
-        projectName: projectInterface.name,
-      });
+      let result: UpdateInfo | null = null;
+
+      if (projectInterface.mirrorchyan_rid) {
+        // MirrorChyan configured — use it with GitHub fallback
+        addDebugLog(`开始检查更新... (频道: ${mirrorChyanSettings.channel})`);
+        result = await checkAndPrepareDownload({
+          resourceId: projectInterface.mirrorchyan_rid,
+          currentVersion: projectInterface.version,
+          cdk: mirrorChyanSettings.cdk || undefined,
+          channel: mirrorChyanSettings.channel,
+          userAgent: 'MXU',
+          githubUrl: projectInterface.github,
+          proxyUrl: proxySettings?.url,
+          projectName: projectInterface.name,
+        });
+      } else if (projectInterface.github) {
+        // No MirrorChyan — go straight to GitHub Releases
+        addDebugLog('检查 GitHub 最新版本...');
+        result = await checkUpdateFromGitHub({
+          githubUrl: projectInterface.github,
+          currentVersion: projectInterface.version,
+          proxyUrl: proxySettings?.url,
+          projectName: projectInterface.name,
+        });
+      } else {
+        addDebugLog('未配置 mirrorchyan_rid 或 github，无法检查更新');
+        setCheckFailed(true);
+        return;
+      }
 
       if (result) {
         setUpdateInfo(result);
@@ -357,7 +376,8 @@ export function UpdateSection() {
     }
   };
 
-  if (!projectInterface?.mirrorchyan_rid) {
+  // Hide the section only if neither mirrorchyan_rid nor github is configured
+  if (!projectInterface?.mirrorchyan_rid && !projectInterface?.github) {
     return null;
   }
 
