@@ -829,13 +829,13 @@ export interface CheckUpdateFromGitHubOptions {
 
 /**
  * Check for updates directly from GitHub Releases (no MirrorChyan needed).
- * Fetches /releases/latest, compares tag_name to currentVersion, and
- * resolves the best matching asset as the download URL.
+ * Uses /repos/{owner}/{repo}/releases/latest which always returns the newest
+ * non-prerelease release without needing to know the version in advance.
  */
 export async function checkUpdateFromGitHub(
   options: CheckUpdateFromGitHubOptions,
 ): Promise<UpdateInfo | null> {
-  const { githubUrl, currentVersion, githubPat, projectName, proxyUrl } = options;
+  const { githubUrl, currentVersion, githubPat, projectName } = options;
 
   const parsed = parseGitHubUrl(githubUrl);
   if (!parsed) {
@@ -844,22 +844,27 @@ export async function checkUpdateFromGitHub(
   }
 
   const { owner, repo } = parsed;
+  const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+
+  log.info(`checkUpdateFromGitHub: fetching ${url}`);
 
   try {
-    // Use the Rust command to fetch latest release (handles proxy + PAT)
-    const release = await invoke<GitHubRelease | null>('get_github_release_by_version', {
-      owner,
-      repo,
-      targetVersion: 'latest',
-      githubPat,
-      proxyUrl,
-    });
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github.v3+json',
+      'User-Agent': 'mxu',
+    };
+    if (githubPat?.trim()) {
+      headers['Authorization'] = `token ${githubPat.trim()}`;
+    }
 
-    if (!release) {
-      log.warn('checkUpdateFromGitHub: no release returned from GitHub API');
+    const response = await tauriFetch(url, { method: 'GET', headers });
+
+    if (!response.ok) {
+      log.error(`checkUpdateFromGitHub: GitHub API error ${response.status}`);
       return null;
     }
 
+    const release = (await response.json()) as GitHubRelease;
     const latestVersion = release.tag_name;
     const hasUpdate = compareVersions(latestVersion, currentVersion) > 0;
 
@@ -868,7 +873,7 @@ export async function checkUpdateFromGitHub(
     );
 
     if (!hasUpdate) {
-      return { hasUpdate: false, versionName: latestVersion, releaseNote: release.body || '' };
+      return { hasUpdate: false, versionName: latestVersion, releaseNote: '' };
     }
 
     // Try to find matching asset
@@ -885,7 +890,7 @@ export async function checkUpdateFromGitHub(
       };
     }
 
-    // No matching asset found — try direct URL construction
+    // No matching asset — try direct URL construction
     if (projectName) {
       const direct = await tryDirectDownloadUrls(owner, repo, projectName, latestVersion);
       if (direct) {
@@ -901,7 +906,6 @@ export async function checkUpdateFromGitHub(
       }
     }
 
-    // Update available but no download URL
     return { hasUpdate: true, versionName: latestVersion, releaseNote: release.body || '' };
   } catch (error) {
     log.error('checkUpdateFromGitHub: error:', error);
