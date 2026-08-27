@@ -54,7 +54,7 @@ function DropdownMenu({ items }: { items: MenuItem[] }) {
 // ── Game types ────────────────────────────────────────────────────────────────
 
 const GAME_TYPES = [
-  { value: 'Koikatsu',        label: 'Koikatsu',         exe: ['Koikatsu.exe'] },
+  { value: 'Koikatsu',        label: 'Koikatsu',         exe: ['Koikatu.exe'] },
   { value: 'KoikatsuParty',   label: 'Koikatsu Party',   exe: ['Koikatsu Party.exe'] },
   { value: 'KoikatsuSunshine',label: 'Koikatsu Sunshine',exe: ['KoikatsuSunshine.exe', 'Koikatsu Sunshine.exe'] },
 ] as const;
