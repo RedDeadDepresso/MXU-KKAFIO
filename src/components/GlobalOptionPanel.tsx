@@ -118,10 +118,29 @@ export function GlobalOptionPanel({ instanceId }: GlobalOptionPanelProps) {
     }
   };
 
+  const handleRunStudio = async () => {
+    if (!folderPath) return;
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const result = await invoke<{ ok: boolean; exe: string; error: string }>(
+        'kkafio_run_studio', { gamePath: folderPath },
+      );
+      if (result.ok) {
+        const exeName = result.exe.replace(/\\/g, '/').split('/').pop() ?? result.exe;
+        toast.success(`Launched ${exeName}`);
+      } else {
+        toast.error(result.error);
+      }
+    } catch (e) {
+      toast.error(`Failed to launch studio: ${e}`);
+    }
+  };
+
   const menuItems: MenuItem[] = [
     { label: t('options.folder.showInExplorer', 'Show in Explorer'), disabled: !folderPath, onClick: handleShowInExplorer },
     { label: t('options.folder.browse', 'Browse…'), onClick: handleBrowse },
     { label: t('options.gameFolder.run', 'Run Game'), disabled: !folderPath, onClick: handleRunGame },
+    { label: t('options.gameFolder.runStudio', 'Run Studio'), disabled: !folderPath, onClick: handleRunStudio },
   ];
 
   return (

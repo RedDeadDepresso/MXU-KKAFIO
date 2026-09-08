@@ -593,3 +593,57 @@ pub fn kkafio_run_game(game_path: String, game_type: Option<String>) -> RunGameR
         Err(e) => RunGameResult { ok: false, exe: exe_str, error: e.to_string() },
     }
 }
+
+// ============================================================================
+// Run Studio command
+// ============================================================================
+
+/// Try to launch CharaStudio from `game_path`.
+/// CharaStudio.exe lives directly in the game's install directory for all
+/// Koikatsu variants (Koikatsu, Koikatsu Party, Koikatsu Sunshine).
+#[tauri::command]
+pub fn kkafio_run_studio(game_path: String) -> RunGameResult {
+    use std::path::Path;
+    use std::process::Command;
+
+    let base = Path::new(&game_path);
+    let candidates = ["CharaStudio.exe"];
+
+    let exe_path = candidates.iter().map(|name| base.join(name)).find(|p| p.exists());
+
+    let exe = match exe_path {
+        Some(p) => p,
+        None => {
+            return RunGameResult {
+                ok: false,
+                exe: String::new(),
+                error: format!("No CharaStudio executable found in '{}'", game_path),
+            };
+        }
+    };
+
+    let exe_str = exe.to_string_lossy().into_owned();
+    let cwd = exe.parent().unwrap_or(base);
+
+    log::info!("[kkafio] launching studio: {}", exe_str);
+
+    #[cfg(windows)]
+    let result = {
+        use std::os::windows::process::CommandExt;
+        // DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP so it survives MXU exit
+        const DETACHED_PROCESS: u32       = 0x0000_0008;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        Command::new(&exe)
+            .current_dir(cwd)
+            .creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
+            .spawn()
+    };
+
+    #[cfg(not(windows))]
+    let result = Command::new(&exe).current_dir(cwd).spawn();
+
+    match result {
+        Ok(_) => RunGameResult { ok: true, exe: exe_str, error: String::new() },
+        Err(e) => RunGameResult { ok: false, exe: exe_str, error: e.to_string() },
+    }
+}

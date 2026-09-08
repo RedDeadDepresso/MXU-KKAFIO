@@ -160,6 +160,7 @@ pub fn run() {
             commands::kkafio::kkafio_rename_chara_export,
             commands::kkafio::kkafio_trash,
             commands::kkafio::kkafio_run_game,
+            commands::kkafio::kkafio_run_studio,
             // File operation commands
             commands::file_ops::read_local_file,
             commands::file_ops::read_local_file_base64,
