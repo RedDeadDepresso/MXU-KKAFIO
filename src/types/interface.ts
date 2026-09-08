@@ -130,7 +130,7 @@ export interface TaskItem {
   option?: string[];
 }
 
-export type OptionType = 'select' | 'checkbox' | 'input' | 'switch' | 'folder' | 'file_list' | 'textarea' | 'action_button';
+export type OptionType = 'select' | 'checkbox' | 'input' | 'switch' | 'folder' | 'file_list' | 'textarea';
 
 export interface CaseItem {
   name: string;
@@ -251,22 +251,7 @@ export interface TextAreaOption {
   pipeline_override?: Record<string, unknown>;
 }
 
-/** Action button — renders a switch-row-style button (no value stored).
- *  Used for one-shot actions like GroupChara Copy/Paste steps. */
-export interface ActionButtonOption {
-  type: 'action_button';
-  label?: string;
-  description?: string;
-  icon?: string;
-  controller?: string[];
-  resource?: string[];
-  /** Identifier used to dispatch the action in OptionEditor */
-  action: string;
-  /** Button label (i18n key or plain string) */
-  button_label?: string;
-}
-
-export type OptionDefinition = SelectOption | CheckboxOption | SwitchOption | InputOption | FolderOption | FileListOption | TextAreaOption | ActionButtonOption;
+export type OptionDefinition = SelectOption | CheckboxOption | SwitchOption | InputOption | FolderOption | FileListOption | TextAreaOption;
 
 // 运行时状态类型
 export interface SelectedTask {

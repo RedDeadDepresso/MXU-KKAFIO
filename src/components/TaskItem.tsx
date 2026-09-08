@@ -585,7 +585,7 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
           value: `${caseNames.length}/${'cases' in optionDef ? optionDef.cases.length : 0}`,
           type: 'checkbox',
         });
-      } else if (optionDef.type === 'folder' || optionDef.type === 'file_list' || optionDef.type === 'textarea' || optionDef.type === 'action_button') {
+      } else if (optionDef.type === 'folder' || optionDef.type === 'file_list' || optionDef.type === 'textarea') {
         // These types have no case-based preview — skip or show a simple value
         if (optionDef.type === 'folder' && optionValue?.type === 'folder' && optionValue.path) {
           previews.push({ key: optionKey, label: optionLabel, value: optionValue.path.split(/[\\/]/).pop() ?? optionValue.path, type: 'select' });

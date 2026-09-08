@@ -38,11 +38,6 @@ export const createDefaultOptionValue = (optionDef: OptionDefinition): OptionVal
     return { type: 'textarea', text: optionDef.default ?? '' };
   }
 
-  if (optionDef.type === 'action_button') {
-    // action_button has no stored value; return a neutral sentinel
-    return { type: 'select', caseName: '' };
-  }
-
   // select type (default)
   const defaultCase = optionDef.default_case || optionDef.cases[0]?.name || '';
   return { type: 'select', caseName: defaultCase };

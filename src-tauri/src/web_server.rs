@@ -22,6 +22,7 @@ use tower_http::cors::{Any, CorsLayer};
 
 use crate::commands::{
     app_config::AppConfigState,
+    state::{append_runtime_log_line, runtime_log_path},
     types::{AppState, LogEntryDto},
     utils::emit_config_changed,
 };
@@ -552,6 +553,8 @@ async fn handle_push_log(
     axum::extract::Path(instance_id): axum::extract::Path<String>,
     Json(entry): Json<LogEntryDto>,
 ) -> impl IntoResponse {
+    append_runtime_log_line(&instance_id, &entry);
+
     match state.app_state.log_buffer.lock() {
         Ok(mut buffer) => {
             buffer.push(&instance_id, entry);
@@ -565,13 +568,19 @@ async fn handle_clear_instance_logs(
     State(state): State<WebState>,
     axum::extract::Path(instance_id): axum::extract::Path<String>,
 ) -> impl IntoResponse {
-    match state.app_state.log_buffer.lock() {
+    let result = match state.app_state.log_buffer.lock() {
         Ok(mut buffer) => {
             buffer.clear_instance(&instance_id);
             StatusCode::NO_CONTENT.into_response()
         }
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+
+    if let Ok(path) = runtime_log_path(&instance_id) {
+        let _ = std::fs::remove_file(path);
     }
+
+    result
 }
 
 async fn handle_heartbeat() -> impl IntoResponse {

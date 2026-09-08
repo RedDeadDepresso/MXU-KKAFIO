@@ -76,7 +76,6 @@ function encodeOptionValue(v: OptionValue): WireOptionValue {
     case 'textarea':
       return { t: 'ta', v: v.text };
     default:
-      // action_button has no stored value — encode as empty select
       return { t: 's', c: '' };
   }
 }
