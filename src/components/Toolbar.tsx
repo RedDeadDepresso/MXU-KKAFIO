@@ -70,6 +70,7 @@ export function Toolbar({ showAddPanel, onToggleAddPanel, className }: ToolbarPr
 
   const canRun = tasks.some((t) => t.enabled);
   const isDisabled = (tasks.length === 0 || !canRun) && !isRunning;
+  const selectedTaskCount = useMemo(() => tasks.filter((t) => t.enabled).length, [tasks]);
 
   const handleSelectAll = () => {
     if (!instance) return;
@@ -270,33 +271,41 @@ export function Toolbar({ showAddPanel, onToggleAddPanel, className }: ToolbarPr
           <SchedulePanel instanceId={instance.id} onClose={() => setShowSchedulePanel(false)} />
         )}
 
-        <button
-          data-role="start-stop-button"
-          onClick={handleStartStop}
-          disabled={isDisabled || isStopping || (isStarting && !isRunning)}
-          className={clsx(
-            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-            isStopping
-              ? 'bg-warning text-white'
-              : isRunning
-                ? 'bg-error hover:bg-error/90 text-white'
-                : isStarting
-                  ? 'bg-success text-white'
-                  : isDisabled
-                    ? 'bg-bg-active text-text-tertiary cursor-not-allowed'
-                    : 'bg-accent hover:bg-accent-hover text-white',
+        <div className="relative">
+          <button
+            data-role="start-stop-button"
+            onClick={handleStartStop}
+            disabled={isDisabled || isStopping || (isStarting && !isRunning)}
+            className={clsx(
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              isStopping
+                ? 'bg-warning text-white'
+                : isRunning
+                  ? 'bg-error hover:bg-error/90 text-white'
+                  : isStarting
+                    ? 'bg-success text-white'
+                    : isDisabled
+                      ? 'bg-bg-active text-text-tertiary cursor-not-allowed'
+                      : 'bg-accent hover:bg-accent-hover text-white',
+            )}
+          >
+            {isStopping ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('taskList.stoppingTasks')}</span></>
+            ) : isRunning ? (
+              <><StopCircle className="w-4 h-4" /><span>{t('taskList.stopTasks')}</span></>
+            ) : isStarting ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('taskList.startingTasks')}</span></>
+            ) : (
+              <><Play className="w-4 h-4" /><span>{t('taskList.startTasks')}</span></>
+            )}
+          </button>
+          {/* 已选中任务数量徽章 */}
+          {selectedTaskCount > 0 && !isRunning && !isStarting && !isStopping && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-accent text-white text-xs font-medium rounded-full ring-2 ring-bg-secondary">
+              {selectedTaskCount}
+            </span>
           )}
-        >
-          {isStopping ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('taskList.stoppingTasks')}</span></>
-          ) : isRunning ? (
-            <><StopCircle className="w-4 h-4" /><span>{t('taskList.stopTasks')}</span></>
-          ) : isStarting ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /><span>{t('taskList.startingTasks')}</span></>
-          ) : (
-            <><Play className="w-4 h-4" /><span>{t('taskList.startTasks')}</span></>
-          )}
-        </button>
+        </div>
       </div>
     </div>
   );
