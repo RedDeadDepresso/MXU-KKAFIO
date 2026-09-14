@@ -42,36 +42,11 @@ pub struct KkafioOutputEvent {
 fn emit_line(app: &tauri::AppHandle, stream: &str, line: &str) {
     let payload = KkafioOutputEvent {
         stream: stream.to_string(),
-        line: strip_ansi(line),
+        line: line.to_string(),
     };
     if let Err(e) = app.emit("kkafio-output", payload) {
         warn!("[kkafio] failed to emit kkafio-output: {}", e);
     }
-}
-
-/// Remove ANSI escape sequences (e.g. `\x1b[94m`, `\x1b[0m`) from a line.
-/// Operates on the string as a char iterator so multi-byte UTF-8 characters
-/// are never corrupted.
-fn strip_ansi(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut chars = s.chars().peekable();
-    while let Some(c) = chars.next() {
-        // ESC [ ... m — the only form the Python logger produces
-        if c == '\x1b' && chars.peek() == Some(&'[') {
-            chars.next(); // consume '['
-            // skip digits and semicolons until the final command letter
-            loop {
-                match chars.peek() {
-                    Some(&d) if d.is_ascii_digit() || d == ';' => { chars.next(); }
-                    Some(_) => { chars.next(); break; } // consume command letter
-                    None    => break,
-                }
-            }
-        } else {
-            out.push(c);
-        }
-    }
-    out
 }
 
 /// Resolve which executable + args to use.
