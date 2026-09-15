@@ -126,8 +126,20 @@ pub fn kkafio_start(
     let mut cmd = {
         use std::os::windows::process::CommandExt;
         const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        // [FIX-2026-09-14-GRACEFUL-STOP] Required so kkafio_stop() can later
+        // target this process (and only this process's group — not MXU's
+        // own) with GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, pid). Without
+        // this flag the child would share MXU's own console process group,
+        // and a process can only be the target of GenerateConsoleCtrlEvent
+        // if its own PID is also a valid process group ID, which requires
+        // CREATE_NEW_PROCESS_GROUP at creation time. This does not affect
+        // CREATE_NO_WINDOW's existing behavior (the child still gets a
+        // hidden console, which GenerateConsoleCtrlEvent also requires —
+        // unlike DETACHED_PROCESS, which would remove the console entirely
+        // and break this).
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
         let mut c = Command::new(&program);
-        c.creation_flags(CREATE_NO_WINDOW);
+        c.creation_flags(CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP);
         c
     };
     #[cfg(not(windows))]
@@ -186,15 +198,130 @@ pub fn kkafio_start(
     Ok(())
 }
 
+/// [FIX-2026-09-14-GRACEFUL-STOP] Raw FFI binding for the one Win32 function
+/// this module needs (`GenerateConsoleCtrlEvent`, from kernel32.dll). A
+/// minimal hand-written `extern "system"` declaration is used here instead
+/// of pulling in a broader Windows API crate purely for this one call —
+/// kernel32 is always implicitly linked on the standard Rust/MSVC Windows
+/// target, so this requires no extra linkage configuration.
+#[cfg(windows)]
+extern "system" {
+    fn GenerateConsoleCtrlEvent(dw_ctrl_event: u32, dw_process_group_id: u32) -> i32;
+}
+
+#[cfg(windows)]
+const CTRL_BREAK_EVENT: u32 = 1;
+
+/// How long to wait for the CLI process to exit gracefully after sending it
+/// CTRL_BREAK_EVENT, before falling back to an unconditional TerminateProcess
+/// kill.
+const GRACEFUL_STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(8);
+
 /// Stop the running KKAFIO CLI process (if any).
+///
+/// [FIX-2026-09-14-GRACEFUL-STOP]
+///
+/// Previously this called `child.kill()` immediately, which on Windows is
+/// `TerminateProcess()` — an OS-level hard kill that the target process
+/// cannot intercept or react to in any way. No Python cleanup code runs at
+/// all: no signal handler, no `finally` block, nothing. In particular, the
+/// download daemon that kkafio_cli.exe spawns internally (via Python's
+/// `multiprocessing.Process`, a separate OS process with its own PID that
+/// this Rust code has never tracked or had a handle to) never received any
+/// notice that its parent was being stopped. It would simply become
+/// orphaned and keep running — including any download it was actively in
+/// the middle of — until it separately noticed its IPC connection to the
+/// now-dead orchestrator had broken. From the user's perspective, clicking
+/// Stop while a download was active did not actually stop that download;
+/// it just killed the visible window while the orphaned daemon kept
+/// running in the background for some additional time.
+///
+/// Fix: try a graceful stop first. `GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT,
+/// pid)` delivers a signal the target process *can* catch (as
+/// `signal.SIGBREAK` on Windows Python) — kkafio_cli.py installs a handler
+/// for this that raises `KeyboardInterrupt`, which propagates up through its
+/// running asyncio task exactly like Ctrl+C would, triggering the existing
+/// `finally: await teleget_downloader.shutdown()` cleanup path in
+/// tasks/download_missing_mods.py. That, in turn, sends the daemon a proper
+/// IPC ShutdownRequest and waits for its ACK — the same graceful daemon
+/// shutdown machinery already used everywhere else, instead of leaving it to
+/// find out on its own that something went wrong.
+///
+/// If the process hasn't exited within GRACEFUL_STOP_TIMEOUT (it may not
+/// have any running task to interrupt, or something may have gone wrong),
+/// this still falls back to the original `child.kill()` as an unconditional
+/// last resort, so Stop is guaranteed to actually terminate the process
+/// either way.
 #[tauri::command]
 pub fn kkafio_stop(state: State<'_, Arc<KkafioState>>) -> Result<(), String> {
     let mut guard = state.child.lock().map_err(|e| e.to_string())?;
     if let Some(mut child) = guard.take() {
         info!("[kkafio] stopping child process");
-        let _ = child.kill();
+
+        #[cfg(windows)]
+        let sent_graceful = {
+            let pid = child.id();
+            // SAFETY: GenerateConsoleCtrlEvent is called with a process
+            // group ID that was established by CREATE_NEW_PROCESS_GROUP at
+            // spawn time (see kkafio_start above); no pointers are passed,
+            // this is a plain FFI call with two integer arguments.
+            let ok = unsafe { GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, pid) };
+            if ok == 0 {
+                warn!(
+                    "[kkafio] GenerateConsoleCtrlEvent failed (err={}), \
+                     falling back to immediate kill",
+                    std::io::Error::last_os_error()
+                );
+                false
+            } else {
+                info!("[kkafio] sent CTRL_BREAK_EVENT (pid={}), waiting up to {:?} for graceful exit", pid, GRACEFUL_STOP_TIMEOUT);
+                true
+            }
+        };
+        #[cfg(not(windows))]
+        let sent_graceful = {
+            // Best-effort graceful stop on non-Windows targets: SIGTERM,
+            // which kkafio_cli.py also handles the same way as SIGBREAK.
+            let pid = child.id() as i32;
+            let ok = unsafe { libc::kill(pid, libc::SIGTERM) } == 0;
+            if ok {
+                info!("[kkafio] sent SIGTERM (pid={}), waiting up to {:?} for graceful exit", pid, GRACEFUL_STOP_TIMEOUT);
+            }
+            ok
+        };
+
         // Reap in a background thread to avoid blocking the command handler.
+        // If a graceful signal was sent, poll for natural exit first and
+        // only escalate to a hard kill if it doesn't exit in time.
         thread::spawn(move || {
+            if sent_graceful {
+                let deadline = std::time::Instant::now() + GRACEFUL_STOP_TIMEOUT;
+                loop {
+                    match child.try_wait() {
+                        Ok(Some(status)) => {
+                            info!("[kkafio] child exited gracefully: {:?}", status);
+                            return;
+                        }
+                        Ok(None) => {
+                            if std::time::Instant::now() >= deadline {
+                                break;
+                            }
+                            thread::sleep(std::time::Duration::from_millis(200));
+                        }
+                        Err(e) => {
+                            warn!("[kkafio] try_wait failed while polling for graceful exit: {}", e);
+                            break;
+                        }
+                    }
+                }
+                warn!(
+                    "[kkafio] child did not exit within {:?} of graceful stop request, \
+                     escalating to TerminateProcess",
+                    GRACEFUL_STOP_TIMEOUT
+                );
+            }
+
+            let _ = child.kill();
             let _ = child.wait();
             info!("[kkafio] child process reaped");
         });
