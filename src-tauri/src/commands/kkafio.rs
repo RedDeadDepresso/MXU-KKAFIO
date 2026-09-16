@@ -1,8 +1,9 @@
 //! KKAFIO process management commands
 //!
-//! Spawns kkafio_cli.exe (or kkafio_cli.py via `uv run`) as a child process, pipes its
-//! stdout/stderr line-by-line to the frontend via the `kkafio-output` Tauri
-//! event, and exposes start/stop commands.
+//! Spawns kkafio_cli.exe (or kkafio_cli.py via its own venv interpreter,
+//! falling back to `uv run` if the venv doesn't exist yet) as a child
+//! process, pipes its stdout/stderr line-by-line to the frontend via the
+//! `kkafio-output` Tauri event, and exposes start/stop commands.
 
 use log::{info, warn};
 use std::io::{BufRead, BufReader};
@@ -50,8 +51,8 @@ fn emit_line(app: &tauri::AppHandle, stream: &str, line: &str) {
 }
 
 /// Resolve which executable + args to use.
-/// Priority: kkafio_cli.exe > kkafio_cli.py (via `uv run`).
-/// Returns (program, args) or an error string.
+/// Priority: kkafio_cli.exe > kkafio_cli.py via its own venv interpreter
+/// directly > kkafio_cli.py via `uv run` (fallback only).
 fn resolve_cli(cwd: &str) -> Result<(String, Vec<String>), String> {
     let exe = Path::new(cwd).join("kkafio_cli.exe");
     if exe.exists() {
@@ -60,6 +61,56 @@ fn resolve_cli(cwd: &str) -> Result<(String, Vec<String>), String> {
 
     let script = Path::new(cwd).join("kkafio_cli.py");
     if script.exists() {
+        // [FIX-2026-09-14-GRACEFUL-STOP-DEV-MODE] Previously this always
+        // ran `uv run --quiet python -u kkafio_cli.py run`, with `uv` as
+        // the direct child process (the one Tauri spawns and applies
+        // CREATE_NEW_PROCESS_GROUP to). GenerateConsoleCtrlEvent
+        // (CTRL_BREAK_EVENT, pid) — used by kkafio_stop() to gracefully
+        // stop the CLI — only reaches processes that are members of the
+        // *same* console process group as the target PID. Whether uv's own
+        // Python child ends up in that same group, or attached to a
+        // console at all, is entirely up to uv's internal process-spawning
+        // behavior, which is opaque to us here — in practice, the graceful
+        // stop signal was not reliably reaching the actual Python process
+        // running kkafio_cli.py through this `uv run` indirection, even
+        // though the exact same mechanism works correctly for the packaged
+        // kkafio_cli.exe (a direct child, no wrapper process in between).
+        //
+        // Fix: resolve uv's own virtualenv interpreter directly
+        // (<cwd>/.venv/Scripts/python.exe on Windows) and spawn *that* as
+        // the direct child, mirroring the .exe case exactly — no wrapper
+        // process, so the same CREATE_NEW_PROCESS_GROUP +
+        // GenerateConsoleCtrlEvent logic that already works for the
+        // packaged build now works identically in dev mode.
+        //
+        // `uv run` is kept as a fallback for the case where the venv
+        // hasn't been created yet (e.g. before an initial `uv sync`) —
+        // being able to run at all is more useful than failing outright —
+        // but graceful stop is not guaranteed to work reliably through
+        // that fallback path specifically.
+        #[cfg(windows)]
+        let venv_python = Path::new(cwd).join(".venv").join("Scripts").join("python.exe");
+        #[cfg(not(windows))]
+        let venv_python = Path::new(cwd).join(".venv").join("bin").join("python");
+
+        if venv_python.exists() {
+            return Ok((
+                venv_python.to_string_lossy().into_owned(),
+                vec![
+                    "-u".into(),
+                    script.to_string_lossy().into_owned(),
+                    "run".into(),
+                ],
+            ));
+        }
+
+        warn!(
+            "[kkafio] venv interpreter not found at {} — falling back to \
+             `uv run` (graceful stop via CTRL_BREAK_EVENT may not work \
+             reliably through this path; run `uv sync` in {} to fix)",
+            venv_python.display(),
+            cwd
+        );
         // Use `uv run` so the correct virtualenv and all dependencies are
         // active regardless of what Python is on PATH.
         // -q suppresses uv's own output so only the CLI's stdout/stderr
@@ -112,8 +163,11 @@ pub fn kkafio_start(
     let (program, mut args) = resolve_cli(&cwd)?;
 
     // Insert --instance N as a global CLI flag *before* the "run" subcommand.
-    // For the .exe case args = ["run"], for the .py case args = ["-u", "<script>", "run"].
-    // In both cases "run" is the last element, so we insert before the final item.
+    // Regardless of which branch resolve_cli() took (.exe: ["run"], venv
+    // python: ["-u", "<script>", "run"], or the `uv run` fallback:
+    // ["run", "--quiet", "python", "-u", "<script>", "run"]), "run" is
+    // always the last element, so inserting before the final item is
+    // correct in all three cases.
     if let Some(idx) = instance_index {
         let run_pos = args.len().saturating_sub(1);
         args.insert(run_pos, idx.to_string());
