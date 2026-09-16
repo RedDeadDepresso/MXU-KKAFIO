@@ -39,6 +39,7 @@ export interface AccentTheme {
     'en-US': string;
     'ja-JP'?: string;
     'ko-KR'?: string;
+    'ru-RU'?: string;
   };
   default: string;
   hover: string;
@@ -104,6 +105,7 @@ export interface CustomAccent {
     'en-US': string;
     'ja-JP'?: string;
     'ko-KR'?: string;
+    'ru-RU'?: string;
   };
   /** 颜色配置 */
   colors: {

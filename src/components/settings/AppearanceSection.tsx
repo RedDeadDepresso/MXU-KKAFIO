@@ -67,7 +67,7 @@ export function AppearanceSection({
   );
 
   const handleLanguageChange = (
-    lang: 'system' | 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR',
+    lang: 'system' | 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR' | 'ru-RU',
   ) => {
     setLanguage(lang);
   };
@@ -86,7 +86,7 @@ export function AppearanceSection({
           <span className="font-medium text-text-primary">{t('settings.language')}</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {(['system', 'zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR'] as const).map((lang) => (
+          {(['system', 'zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'ru-RU'] as const).map((lang) => (
             <button
               key={lang}
               onClick={() => handleLanguageChange(lang)}
@@ -107,7 +107,9 @@ export function AppearanceSection({
                       ? 'English'
                       : lang === 'ja-JP'
                         ? '日本語'
-                        : '한국어'}
+                        : lang === 'ko-KR'
+                          ? '한국어'
+                          : 'Русский'}
             </button>
           ))}
         </div>

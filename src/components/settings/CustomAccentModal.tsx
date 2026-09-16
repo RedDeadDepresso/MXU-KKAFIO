@@ -148,6 +148,7 @@ export function CustomAccentModal({
         'en-US': trimmedName,
         'ja-JP': trimmedName,
         'ko-KR': trimmedName,
+        'ru-RU': trimmedName,
       },
       colors: {
         default: accentMainColor,

@@ -127,7 +127,7 @@ export interface HotkeySettings {
 export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   accentColor?: AccentColor; // 强调色
-  language: 'system' | 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR';
+  language: 'system' | 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR' | 'ru-RU';
   backgroundImage?: string; // 背景图片路径
   backgroundOpacity?: number; // 背景图片不透明度 (0-100)
   /** 删除等危险操作是否需要二次确认 */

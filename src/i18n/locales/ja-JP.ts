@@ -10,6 +10,7 @@ export default {
     add: '追加',
     open: '開く',
     close: '閉じる',
+    reset: 'リセット',
     loading: '読み込み中...',
     error: 'エラー',
     success: '成功',
@@ -201,6 +202,10 @@ export default {
     stopTasks: '実行停止',
     startingTasks: '開始中...',
     stoppingTasks: '停止中...',
+    tasksSkippedDueToIncompatibility: '互換性のないタスクを {{count}} 件スキップしました',
+    taskSkippedController: 'タスク「{{taskName}}」は現在のコントローラーに対応していません',
+    taskSkippedResource: 'タスク「{{taskName}}」は現在のリソースに対応していません',
+    noCompatibleTasks: '現在のコントローラーとリソースに対応するタスクがありません',
     // 自動接続関連
     autoConnect: {
       searching: 'デバイスを検索中...',
@@ -512,7 +517,7 @@ export default {
     exeDir: '実行ファイルのディレクトリ',
     webview2Dir: 'WebView2 ディレクトリ',
     webview2System: 'システム',
-    resetWindowSize: 'ウィンドウサイズをリセット',
+    resetWindowLayout: 'ウィンドウレイアウトをリセット',
     openConfigDir: '設定フォルダを開く',
     openLogDir: 'ログフォルダを開く',
     exportLogs: 'ログをエクスポート',
@@ -873,5 +878,32 @@ export default {
     urlHintDisabled: 'Mirror醤 CDK が入力されているため、プロキシは無効です',
     invalid: 'プロキシ URL の形式が正しくありません',
     examples: '形式の例',
+  },
+
+  // オプションウィジェット（フォルダ／ファイルリスト型）とゲーム設定パネル
+  options: {
+    folder: {
+      placeholder: 'フォルダを選択…',
+      browse: '参照…',
+      showInExplorer: 'エクスプローラーで表示',
+      clear: '内容をクリア…',
+      clearConfirm: 'このフォルダの中身をすべてごみ箱に送りますか？',
+      clearDeleteFolder: 'フォルダ自体もごみ箱に送る',
+      clearConfirmBtn: 'ごみ箱に送る',
+    },
+    fileList: {
+      add: '追加…',
+      clearAll: 'すべてクリア',
+      empty: 'ファイルはまだ追加されていません',
+    },
+    gameFolder: {
+      run: 'ゲームを起動',
+      runStudio: 'スタジオを起動',
+    },
+  },
+  instanceSettings: {
+    title: 'ゲーム設定',
+    gameType: 'ゲームの種類',
+    gamePath: 'ゲームインストールパス',
   },
 };

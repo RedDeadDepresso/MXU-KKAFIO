@@ -855,4 +855,30 @@ export default {
     hint: '小提示：建议解压到一个专门的文件夹，比如「D:\\MaaXXX」，别放桌面或者下载文件夹，那样更方便管理。',
     exit: '退出程序',
   },
+  // 参数控件（文件夹 / 文件列表类型）与游戏设置面板
+  options: {
+    folder: {
+      placeholder: '选择一个文件夹…',
+      browse: '浏览…',
+      showInExplorer: '在资源管理器中显示',
+      clear: '清空内容…',
+      clearConfirm: '要将此文件夹中的所有内容发送到回收站吗？',
+      clearDeleteFolder: '同时将文件夹本身也发送到回收站',
+      clearConfirmBtn: '发送到回收站',
+    },
+    fileList: {
+      add: '添加…',
+      clearAll: '清空全部',
+      empty: '尚未添加任何文件',
+    },
+    gameFolder: {
+      run: '运行游戏',
+      runStudio: '运行 Studio',
+    },
+  },
+  instanceSettings: {
+    title: '游戏设置',
+    gameType: '游戏类型',
+    gamePath: '游戏安装路径',
+  },
 };

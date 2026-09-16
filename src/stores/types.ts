@@ -36,7 +36,7 @@ export interface LogEntry {
 }
 
 export type Theme = 'light' | 'dark' | 'system';
-export type Language = 'system' | 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR';
+export type Language = 'system' | 'zh-CN' | 'zh-TW' | 'en-US' | 'ja-JP' | 'ko-KR' | 'ru-RU';
 export type PageView = 'main' | 'settings';
 
 // 定时执行状态信息

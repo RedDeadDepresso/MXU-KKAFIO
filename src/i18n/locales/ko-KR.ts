@@ -10,6 +10,7 @@ export default {
     add: '추가',
     open: '열기',
     close: '닫기',
+    reset: '초기화',
     loading: '로딩 중...',
     error: '오류',
     success: '성공',
@@ -200,6 +201,10 @@ export default {
     stopTasks: '실행 중지',
     startingTasks: '시작 중...',
     stoppingTasks: '중지 중...',
+    tasksSkippedDueToIncompatibility: '호환되지 않는 작업 {{count}}개를 건너뛰었습니다',
+    taskSkippedController: '작업 "{{taskName}}"은(는) 현재 컨트롤러를 지원하지 않습니다',
+    taskSkippedResource: '작업 "{{taskName}}"은(는) 현재 리소스를 지원하지 않습니다',
+    noCompatibleTasks: '현재 컨트롤러 및 리소스와 호환되는 작업이 없습니다',
     // 자동 연결 관련
     autoConnect: {
       searching: '기기 검색 중...',
@@ -509,7 +514,7 @@ export default {
     exeDir: '실행 파일 디렉토리',
     webview2Dir: 'WebView2 디렉토리',
     webview2System: '시스템',
-    resetWindowSize: '창 크기 초기화',
+    resetWindowLayout: '창 레이아웃 초기화',
     openConfigDir: '설정 폴더 열기',
     openLogDir: '로그 폴더 열기',
     exportLogs: '로그 내보내기',
@@ -865,5 +870,32 @@ export default {
     urlHintDisabled: 'Mirror짱 CDK가 입력되어 프록시 기능이 비활성화되었습니다',
     invalid: '프록시 주소 형식이 올바르지 않습니다',
     examples: '예시 형식',
+  },
+
+  // 옵션 위젯(폴더 / 파일 목록 유형) 및 게임 설정 패널
+  options: {
+    folder: {
+      placeholder: '폴더 선택…',
+      browse: '찾아보기…',
+      showInExplorer: '탐색기에서 표시',
+      clear: '내용 지우기…',
+      clearConfirm: '이 폴더의 모든 내용을 휴지통으로 보내시겠습니까?',
+      clearDeleteFolder: '폴더 자체도 휴지통으로 보내기',
+      clearConfirmBtn: '휴지통으로 보내기',
+    },
+    fileList: {
+      add: '추가…',
+      clearAll: '모두 지우기',
+      empty: '추가된 파일이 없습니다',
+    },
+    gameFolder: {
+      run: '게임 실행',
+      runStudio: '스튜디오 실행',
+    },
+  },
+  instanceSettings: {
+    title: '게임 설정',
+    gameType: '게임 종류',
+    gamePath: '게임 설치 경로',
   },
 };

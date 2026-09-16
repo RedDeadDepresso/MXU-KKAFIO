@@ -875,4 +875,31 @@ export default {
     invalid: 'Invalid proxy URL format',
     examples: 'Example Formats',
   },
+
+  // Option widgets (folder / file_list types) and the pinned Game Settings panel
+  options: {
+    folder: {
+      placeholder: 'Select a folder…',
+      browse: 'Browse…',
+      showInExplorer: 'Show in Explorer',
+      clear: 'Clear contents…',
+      clearConfirm: 'Send all contents of this folder to the Recycle Bin?',
+      clearDeleteFolder: 'Also send the folder itself to the Recycle Bin',
+      clearConfirmBtn: 'Send to Bin',
+    },
+    fileList: {
+      add: 'Add…',
+      clearAll: 'Clear All',
+      empty: 'No files added yet',
+    },
+    gameFolder: {
+      run: 'Run Game',
+      runStudio: 'Run Studio',
+    },
+  },
+  instanceSettings: {
+    title: 'Game Settings',
+    gameType: 'Game Type',
+    gamePath: 'Game Installation Path',
+  },
 };

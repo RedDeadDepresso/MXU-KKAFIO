@@ -10,6 +10,7 @@ export default {
     add: '新增',
     open: '開啟',
     close: '關閉',
+    reset: '重置',
     loading: '載入中...',
     error: '錯誤',
     success: '成功',
@@ -197,6 +198,10 @@ export default {
     stopTasks: '停止任務',
     startingTasks: '啟動中...',
     stoppingTasks: '停止中...',
+    tasksSkippedDueToIncompatibility: '已跳過 {{count}} 個不相容的任務',
+    taskSkippedController: '任務「{{taskName}}」不支援目前的控制器',
+    taskSkippedResource: '任務「{{taskName}}」不支援目前的資源',
+    noCompatibleTasks: '沒有與目前控制器和資源相容的任務',
     // 自動連接相关
     autoConnect: {
       searching: '搜尋裝置...',
@@ -502,7 +507,7 @@ export default {
     exeDir: '程式所在目錄',
     webview2Dir: 'WebView2 目錄',
     webview2System: '系統',
-    resetWindowSize: '重設視窗尺寸',
+    resetWindowLayout: '重設視窗佈局',
     openConfigDir: '開啟設定目錄',
     openLogDir: '開啟日誌目錄',
     exportLogs: '匯出日誌',
@@ -849,5 +854,31 @@ export default {
     urlHintDisabled: '已填寫 Mirror酱 CDK，代理功能已停用',
     invalid: '代理位址格式不正確',
     examples: '示例格式',
+  },
+  // 參數控制項（資料夾 / 檔案清單類型）與遊戲設定面板
+  options: {
+    folder: {
+      placeholder: '選擇一個資料夾…',
+      browse: '瀏覽…',
+      showInExplorer: '在檔案總管中顯示',
+      clear: '清空內容…',
+      clearConfirm: '要將此資料夾中的所有內容傳送到資源回收筒嗎？',
+      clearDeleteFolder: '同時將資料夾本身也傳送到資源回收筒',
+      clearConfirmBtn: '傳送到資源回收筒',
+    },
+    fileList: {
+      add: '新增…',
+      clearAll: '全部清空',
+      empty: '尚未新增任何檔案',
+    },
+    gameFolder: {
+      run: '執行遊戲',
+      runStudio: '執行 Studio',
+    },
+  },
+  instanceSettings: {
+    title: '遊戲設定',
+    gameType: '遊戲類型',
+    gamePath: '遊戲安裝路徑',
   },
 };
