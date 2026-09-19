@@ -252,15 +252,18 @@ pub fn kkafio_start(
     Ok(())
 }
 
-/// [FIX-2026-09-14-GRACEFUL-STOP] Raw FFI binding for the one Win32 function
-/// this module needs (`GenerateConsoleCtrlEvent`, from kernel32.dll). A
-/// minimal hand-written `extern "system"` declaration is used here instead
-/// of pulling in a broader Windows API crate purely for this one call —
-/// kernel32 is always implicitly linked on the standard Rust/MSVC Windows
-/// target, so this requires no extra linkage configuration.
+/// [FIX-2026-09-14-GRACEFUL-STOP] Raw FFI bindings for the Win32 functions
+/// this module needs, all from kernel32.dll. Minimal hand-written
+/// `extern "system"` declarations are used here instead of pulling in a
+/// broader Windows API crate purely for these calls — kernel32 is always
+/// implicitly linked on the standard Rust/MSVC Windows target, so this
+/// requires no extra linkage configuration.
 #[cfg(windows)]
 extern "system" {
     fn GenerateConsoleCtrlEvent(dw_ctrl_event: u32, dw_process_group_id: u32) -> i32;
+    fn AttachConsole(dw_process_id: u32) -> i32;
+    fn FreeConsole() -> i32;
+    fn SetConsoleCtrlHandler(handler_routine: *const std::ffi::c_void, add: i32) -> i32;
 }
 
 #[cfg(windows)]
@@ -301,6 +304,27 @@ const GRACEFUL_STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_sec
 /// shutdown machinery already used everywhere else, instead of leaving it to
 /// find out on its own that something went wrong.
 ///
+/// [FIX-2026-09-18-ATTACH-CONSOLE] `GenerateConsoleCtrlEvent` requires the
+/// *calling* process to have a valid console context to operate through.
+/// Tauri apps (like MXU) run under the `windows` GUI subsystem and have no
+/// console of their own by default — calling GenerateConsoleCtrlEvent from
+/// such a process silently fails (observed in the wild: the CLI process
+/// vanished with zero graceful-shutdown activity in its own log, and the
+/// daemon noticed its IPC connection break well under a second later —
+/// nowhere near the 8s graceful window, meaning the "no console" failure
+/// was falling straight through to the immediate-kill fallback below every
+/// time, without the fallback's warning even being visible because... it
+/// *was* logged, just easy to miss/not paired with the Python-side log at
+/// a glance). The standard, documented workaround is to temporarily
+/// `AttachConsole(child_pid)` before sending the event (borrowing the
+/// child's own console, which it does have — it was spawned with
+/// CREATE_NO_WINDOW, not DETACHED_PROCESS, specifically so it would have
+/// one), and `FreeConsole()` immediately after. While attached,
+/// `SetConsoleCtrlHandler(NULL, TRUE)` tells this (MXU's own) process to
+/// ignore the console event once it's broadcast, since after attaching we
+/// briefly share the same console process group as the child and would
+/// otherwise receive our own broadcast signal too.
+///
 /// If the process hasn't exited within GRACEFUL_STOP_TIMEOUT (it may not
 /// have any running task to interrupt, or something may have gone wrong),
 /// this still falls back to the original `child.kill()` as an unconditional
@@ -315,21 +339,48 @@ pub fn kkafio_stop(state: State<'_, Arc<KkafioState>>) -> Result<(), String> {
         #[cfg(windows)]
         let sent_graceful = {
             let pid = child.id();
-            // SAFETY: GenerateConsoleCtrlEvent is called with a process
-            // group ID that was established by CREATE_NEW_PROCESS_GROUP at
-            // spawn time (see kkafio_start above); no pointers are passed,
-            // this is a plain FFI call with two integer arguments.
-            let ok = unsafe { GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, pid) };
-            if ok == 0 {
-                warn!(
-                    "[kkafio] GenerateConsoleCtrlEvent failed (err={}), \
-                     falling back to immediate kill",
-                    std::io::Error::last_os_error()
-                );
-                false
-            } else {
-                info!("[kkafio] sent CTRL_BREAK_EVENT (pid={}), waiting up to {:?} for graceful exit", pid, GRACEFUL_STOP_TIMEOUT);
-                true
+            // SAFETY: these are plain FFI calls with integer/null-pointer
+            // arguments only, following the standard documented sequence
+            // for sending a console control event from a console-less
+            // process to a child that has its own console.
+            unsafe {
+                if AttachConsole(pid) == 0 {
+                    warn!(
+                        "[kkafio] AttachConsole failed (err={}), \
+                         falling back to immediate kill",
+                        std::io::Error::last_os_error()
+                    );
+                    false
+                } else {
+                    // Ignore the event in *this* process once broadcast —
+                    // we're only borrowing the child's console to send the
+                    // signal, not asking to be affected by it ourselves.
+                    SetConsoleCtrlHandler(std::ptr::null(), 1);
+
+                    let ok = GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, pid);
+                    let err = std::io::Error::last_os_error();
+
+                    // Detach again regardless of whether sending succeeded —
+                    // we don't want to keep borrowing the child's console.
+                    FreeConsole();
+                    SetConsoleCtrlHandler(std::ptr::null(), 0);
+
+                    if ok == 0 {
+                        warn!(
+                            "[kkafio] GenerateConsoleCtrlEvent failed (err={}), \
+                             falling back to immediate kill",
+                            err
+                        );
+                        false
+                    } else {
+                        info!(
+                            "[kkafio] sent CTRL_BREAK_EVENT (pid={}), waiting up \
+                             to {:?} for graceful exit",
+                            pid, GRACEFUL_STOP_TIMEOUT
+                        );
+                        true
+                    }
+                }
             }
         };
         #[cfg(not(windows))]
