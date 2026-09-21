@@ -118,6 +118,18 @@ export const convertPresetOptionValue = (
     return { type: 'select', caseName: presetValue };
   }
 
+  if (optDef.type === 'folder' && typeof presetValue === 'string') {
+    return { type: 'folder', path: presetValue };
+  }
+
+  if (optDef.type === 'textarea' && typeof presetValue === 'string') {
+    return { type: 'textarea', text: presetValue };
+  }
+
+  if (optDef.type === 'file_list' && Array.isArray(presetValue)) {
+    return { type: 'file_list', paths: presetValue as string[] };
+  }
+
   return null;
 };
 

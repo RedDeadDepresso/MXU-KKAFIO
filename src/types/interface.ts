@@ -350,8 +350,8 @@ export interface PresetTaskItem {
 
 /** v2.3.0: 预设中的选项值 */
 export type PresetOptionValue =
-  | string // select / switch
-  | string[] // checkbox
+  | string // select / switch / folder / textarea
+  | string[] // checkbox / file_list
   | Record<string, string>; // input
 
 /** v2.3.0: 预设配置项 */
