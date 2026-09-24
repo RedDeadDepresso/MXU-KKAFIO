@@ -339,6 +339,8 @@ export interface Instance {
   globalOptionValues?: Record<string, OptionValue>;
   schedulePolicies?: SchedulePolicy[];
   preActions?: ActionConfig[];
+  /** When true, the KKAFIO Explorer context menu runs with this instance's config (only one instance holds this) */
+  useInContextMenu?: boolean;
 }
 
 /** v2.3.0: 预设中的任务配置 */

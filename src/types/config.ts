@@ -61,6 +61,8 @@ export interface SavedInstance {
   globalOptionValues?: Record<string, import('./interface').OptionValue>;
   schedulePolicies?: SchedulePolicy[];
   preActions?: ActionConfig[];
+  /** When true, the KKAFIO Explorer context menu runs with this instance's config */
+  useInContextMenu?: boolean;
   /** @deprecated 旧版单前置程序字段，仅用于向后兼容读取 */
   preAction?: LegacyActionConfig;
 }

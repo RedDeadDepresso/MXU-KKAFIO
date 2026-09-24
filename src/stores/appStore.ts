@@ -420,6 +420,15 @@ export const useAppStore = create<AppState>()(
         instances: state.instances.map((i) => (i.id === id ? { ...i, name: newName } : i)),
       })),
 
+    setContextMenuInstance: (id) =>
+      set((state) => ({
+        instances: state.instances.map((i) => {
+          const shouldUse = id !== null && i.id === id;
+          if (!!i.useInContextMenu === shouldUse) return i;
+          return { ...i, useInContextMenu: shouldUse || undefined };
+        }),
+      })),
+
     reorderInstances: (oldIndex, newIndex) =>
       set((state) => {
         const instances = [...state.instances];
@@ -898,6 +907,8 @@ export const useAppStore = create<AppState>()(
         })),
         isRunning: false,
         preActions: sourceInstance.preActions?.map((a) => ({ ...a, id: generateId() })),
+        // The context-menu marker is exclusive; a copy never inherits it
+        useInContextMenu: undefined,
       };
 
       // 复制源实例的控制器和资源选择
@@ -1102,6 +1113,7 @@ export const useAppStore = create<AppState>()(
           globalOptionValues: inst.globalOptionValues ?? {},
           schedulePolicies: inst.schedulePolicies,
           preActions: migratePreActions(inst),
+          useInContextMenu: inst.useInContextMenu || undefined,
         };
       });
 
@@ -2028,6 +2040,7 @@ function generateConfig(): MxuConfig {
       globalOptionValues: inst.globalOptionValues ?? {},
       schedulePolicies: inst.schedulePolicies,
       preActions: inst.preActions,
+      useInContextMenu: inst.useInContextMenu || undefined,
     })),
     // WebUI 模式下保留后端原始的外观 & 布局设置，避免覆盖桌面端偏好
     ...(() => {

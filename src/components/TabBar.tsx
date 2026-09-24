@@ -21,6 +21,8 @@ import {
   Bell,
   History,
   Share2,
+  MousePointerClick,
+  MousePointerBan,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 import { ContextMenu, useContextMenu, type MenuItem } from './ContextMenu';
@@ -61,6 +63,7 @@ export function TabBar() {
     removeInstance,
     setActiveInstance,
     renameInstance,
+    setContextMenuInstance,
     reorderInstances,
     duplicateInstance,
     theme,
@@ -165,6 +168,7 @@ export function TabBar() {
       const instanceIndex = instances.findIndex((i) => i.id === instanceId);
       const isFirst = instanceIndex === 0;
       const isLast = instanceIndex === instances.length - 1;
+      const isContextMenuInstance = !!instances[instanceIndex]?.useInContextMenu;
 
       const menuItems: MenuItem[] = [
         {
@@ -206,6 +210,19 @@ export function TabBar() {
             setEditName(instanceName);
           },
         },
+        isContextMenuInstance
+          ? {
+              id: 'context-menu-remove',
+              label: t('contextMenu.removeFromExplorerMenu'),
+              icon: MousePointerBan,
+              onClick: () => setContextMenuInstance(null),
+            }
+          : {
+              id: 'context-menu-use',
+              label: t('contextMenu.useInExplorerMenu'),
+              icon: MousePointerClick,
+              onClick: () => setContextMenuInstance(instanceId),
+            },
         { id: 'divider-1', label: '', divider: true },
         {
           id: 'move-left',
@@ -284,6 +301,7 @@ export function TabBar() {
       createInstance,
       duplicateInstance,
       removeInstance,
+      setContextMenuInstance,
       reorderInstances,
       showMenu,
       projectInterface,
@@ -443,6 +461,11 @@ export function TabBar() {
                 <>
                   {instance.isRunning && (
                     <span className="w-2 h-2 rounded-full bg-accent task-running-indicator flex-shrink-0" />
+                  )}
+                  {instance.useInContextMenu && (
+                    <span title={t('contextMenu.explorerMenuBadge')} className="flex-shrink-0">
+                      <MousePointerClick className="w-3 h-3 text-accent" />
+                    </span>
                   )}
                   <span className="flex-1 truncate text-sm" title={t('titleBar.renameInstance')}>
                     {instance.name}

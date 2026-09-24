@@ -140,6 +140,8 @@ export interface AppState {
   setActiveInstance: (id: string) => void;
   updateInstance: (id: string, updates: Partial<Instance>) => void;
   renameInstance: (id: string, newName: string) => void;
+  /** Mark an instance as the one used by the Explorer context menu (null clears it). Exclusive. */
+  setContextMenuInstance: (id: string | null) => void;
   reorderInstances: (oldIndex: number, newIndex: number) => void;
 
   // 获取活动实例
