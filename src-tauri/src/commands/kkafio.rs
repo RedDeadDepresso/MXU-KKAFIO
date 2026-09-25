@@ -264,10 +264,19 @@ extern "system" {
     fn AttachConsole(dw_process_id: u32) -> i32;
     fn FreeConsole() -> i32;
     fn SetConsoleCtrlHandler(handler_routine: *const std::ffi::c_void, add: i32) -> i32;
+    fn GetStdHandle(nstdhandle: u32) -> isize;
+    fn SetStdHandle(nstdhandle: u32, hhandle: isize) -> i32;
 }
 
 #[cfg(windows)]
 const CTRL_BREAK_EVENT: u32 = 1;
+
+#[cfg(windows)]
+const STD_INPUT_HANDLE: u32 = 0xFFFF_FFF6; // (u32)-10
+#[cfg(windows)]
+const STD_OUTPUT_HANDLE: u32 = 0xFFFF_FFF5; // (u32)-11
+#[cfg(windows)]
+const STD_ERROR_HANDLE: u32 = 0xFFFF_FFF4; // (u32)-12
 
 /// How long to wait for the CLI process to exit gracefully after sending it
 /// CTRL_BREAK_EVENT, before falling back to an unconditional TerminateProcess
@@ -330,6 +339,26 @@ const GRACEFUL_STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_sec
 /// this still falls back to the original `child.kill()` as an unconditional
 /// last resort, so Stop is guaranteed to actually terminate the process
 /// either way.
+///
+/// [FIX-2026-09-25-RESTORE-STD-HANDLES] `AttachConsole` documents that if
+/// the calling process's STD_INPUT_HANDLE/STD_OUTPUT_HANDLE/STD_ERROR_HANDLE
+/// have *not* been explicitly redirected (true for MXU, a windows-subsystem
+/// GUI app with no console of its own), attaching resets those std handles
+/// to the newly attached console's handles. `FreeConsole()` then closes that
+/// console, but never resets the process's std-handle slots back — they are
+/// left pointing at now-*closed* handle values. The next time
+/// `kkafio_start()` spawns a child with piped stdio, `CreateProcess(...,
+/// bInheritHandles=TRUE, ...)` tries to duplicate every inheritable handle
+/// in this process into the child, including those stale std-handle slots;
+/// duplicating an already-closed handle fails with ERROR_INVALID_HANDLE
+/// ("The handle is invalid.", os error 6), which aborts the whole spawn.
+/// This only surfaces after a stop→start cycle, since only kkafio_stop()
+/// touches console/std-handle state — matching the reported "Failed to
+/// spawn KKAFIO CLI: The handle is invalid. (os error 6)" after
+/// stop-then-run. Fix: snapshot the original std handles before
+/// AttachConsole and explicitly restore them with SetStdHandle right after
+/// FreeConsole, so no stale/closed handle is left behind for a later
+/// CreateProcess to try to inherit.
 #[tauri::command]
 pub fn kkafio_stop(state: State<'_, Arc<KkafioState>>) -> Result<(), String> {
     let mut guard = state.child.lock().map_err(|e| e.to_string())?;
@@ -344,6 +373,15 @@ pub fn kkafio_stop(state: State<'_, Arc<KkafioState>>) -> Result<(), String> {
             // for sending a console control event from a console-less
             // process to a child that has its own console.
             unsafe {
+                // Snapshot our own std handles *before* attaching, so we can
+                // put them back exactly as they were afterwards. For a
+                // console-less GUI process these are typically NULL /
+                // INVALID_HANDLE_VALUE, but we restore whatever was
+                // actually there rather than assuming.
+                let orig_stdin = GetStdHandle(STD_INPUT_HANDLE);
+                let orig_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
+                let orig_stderr = GetStdHandle(STD_ERROR_HANDLE);
+
                 if AttachConsole(pid) == 0 {
                     warn!(
                         "[kkafio] AttachConsole failed (err={}), \
@@ -364,6 +402,15 @@ pub fn kkafio_stop(state: State<'_, Arc<KkafioState>>) -> Result<(), String> {
                     // we don't want to keep borrowing the child's console.
                     FreeConsole();
                     SetConsoleCtrlHandler(std::ptr::null(), 0);
+
+                    // [FIX-2026-09-25-RESTORE-STD-HANDLES] AttachConsole may
+                    // have silently repointed our std handles at the child's
+                    // (now-closed) console. Put back exactly what was there
+                    // before, so a later CreateProcess (spawning the CLI
+                    // again) never tries to inherit a dangling handle.
+                    SetStdHandle(STD_INPUT_HANDLE, orig_stdin);
+                    SetStdHandle(STD_OUTPUT_HANDLE, orig_stdout);
+                    SetStdHandle(STD_ERROR_HANDLE, orig_stderr);
 
                     if ok == 0 {
                         warn!(
