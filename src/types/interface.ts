@@ -363,6 +363,13 @@ export interface PresetItem {
   description?: string;
   icon?: string;
   task: PresetTaskItem[];
+  /**
+   * 首次初始化预设时，是否将本预设自动创建的实例标记为
+   * "Explorer 右键菜单" 使用的实例（对应 Instance.useInContextMenu）。
+   * 同一 interface.json 中应最多只有一个预设设置为 true；
+   * 若有多个，实际生效的是数组中最后一个被处理的预设。
+   */
+  use_in_context_menu?: boolean;
 }
 
 /** v2.3.0: focus 模板，支持字符串简写和对象完整写法 */

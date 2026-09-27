@@ -707,10 +707,21 @@ function App() {
           // 有预设且尚未完成预设初始化 → 为每个预设创建一个 tab 并应用
           const langKey = getInterfaceLangKey(storeState.language);
           let firstInstanceId: string | null = null;
+          const contextMenuPresets = presets.filter((p) => p.use_in_context_menu);
+          if (contextMenuPresets.length > 1) {
+            log.warn(
+              `interface.json 中有 ${contextMenuPresets.length} 个预设设置了 use_in_context_menu，` +
+                '只有最后一个会被标记为 Explorer 右键菜单实例:',
+              contextMenuPresets.map((p) => p.name).join(', '),
+            );
+          }
           for (const preset of presets) {
             const label = storeState.resolveI18nText(preset.label, langKey) || preset.name;
             const instanceId = storeState.createInstance(label, true);
             storeState.applyPreset(instanceId, preset.name);
+            if (preset.use_in_context_menu) {
+              storeState.setContextMenuInstance(instanceId);
+            }
             if (!firstInstanceId) firstInstanceId = instanceId;
           }
           // 创建完成后选中第一个预设 tab
