@@ -304,11 +304,6 @@ export interface AppState {
     options?: { skipRunningState?: boolean },
   ) => void;
 
-  // 右侧面板折叠状态
-  sidePanelExpanded: boolean;
-  setSidePanelExpanded: (expanded: boolean) => void;
-  toggleSidePanelExpanded: () => void;
-
   // 右侧面板宽度和折叠状态
   rightPanelWidth: number;
   rightPanelCollapsed: boolean;

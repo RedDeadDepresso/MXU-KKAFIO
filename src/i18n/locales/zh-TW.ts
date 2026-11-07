@@ -394,7 +394,6 @@ export default {
     needResource: '請先載入資源',
   },
 
-
   // 日誌/資訊流
   logs: {
     title: '執行日誌',
@@ -403,8 +402,6 @@ export default {
     autoscroll: '自動捲動',
     noLogs: '暫無日誌',
     copyAll: '複製全部',
-    expand: '展開上方面板',
-    collapse: '摺疊上方面板',
     scrollToLogs: '查看日誌',
     // 日誌訊息
     messages: {
@@ -537,7 +534,6 @@ export default {
   connection: {
     title: '連接設定',
   },
-
 
   // 最近關閉
   recentlyClosed: {

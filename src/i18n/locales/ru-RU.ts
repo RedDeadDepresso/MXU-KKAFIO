@@ -414,8 +414,6 @@ export default {
     autoscroll: 'Автопрокрутка',
     noLogs: 'Нет записей журнала',
     copyAll: 'Копировать всё',
-    expand: 'Развернуть панели выше',
-    collapse: 'Свернуть панели выше',
     scrollToLogs: 'Перейти к журналам',
     // Сообщения журнала
     messages: {

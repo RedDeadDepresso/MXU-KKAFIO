@@ -139,7 +139,6 @@ export interface AppSettings {
   mirrorChyan?: MirrorChyanSettings;
   proxy?: ProxySettings; // 代理设置
   showOptionPreview?: boolean; // 是否在任务列表显示选项预览
-  sidePanelExpanded?: boolean; // 右侧面板是否展开（连接）
   connectionPanelExpanded?: boolean; // 连接设置卡片是否展开
   welcomeShownHash?: string; // 已显示过的 welcome 内容 hash，用于判断内容变化时重新弹窗
   rightPanelWidth?: number; // 右侧面板宽度

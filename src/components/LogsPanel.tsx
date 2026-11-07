@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Copy, ChevronUp, ChevronDown, Archive, RotateCcw } from 'lucide-react';
+import { Trash2, Copy, Archive, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useAppStore, type LogType } from '@/stores/appStore';
@@ -27,8 +27,6 @@ export function LogsPanel() {
   const logsContainerRef = useRef<HTMLDivElement>(null);
 
   const {
-    sidePanelExpanded,
-    toggleSidePanelExpanded,
     activeInstanceId,
     instanceLogs,
     autoClearLogsOnLaunch,
@@ -116,13 +114,6 @@ export function LogsPanel() {
           danger: true,
           onClick: handleClear,
         },
-        { id: 'divider-1', label: '', divider: true },
-        {
-          id: 'toggle-panel',
-          label: sidePanelExpanded ? t('logs.collapse') : t('logs.expand'),
-          icon: sidePanelExpanded ? ChevronUp : ChevronDown,
-          onClick: toggleSidePanelExpanded,
-        },
       ];
 
       showMenu(e, menuItems);
@@ -130,11 +121,9 @@ export function LogsPanel() {
     [
       t,
       logs.length,
-      sidePanelExpanded,
       handleExportLogs,
       handleCopyAll,
       handleClear,
-      toggleSidePanelExpanded,
       showMenu,
     ],
   );
@@ -148,27 +137,8 @@ export function LogsPanel() {
         isMobile ? 'h-[calc(100dvh-2.5rem)]' : 'flex-1 min-h-50',
       )}
     >
-      {/* 标题栏（桌面端可点击展开/折叠上方面板，移动端仅显示标题） */}
-      <div
-        role={isMobile ? undefined : 'button'}
-        tabIndex={isMobile ? undefined : 0}
-        onClick={isMobile ? undefined : toggleSidePanelExpanded}
-        onKeyDown={
-          isMobile
-            ? undefined
-            : (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggleSidePanelExpanded();
-                }
-              }
-        }
-        className={clsx(
-          'flex items-center justify-between px-3 py-2 border-b border-border transition-colors shrink-0 rounded-t-lg',
-          !isMobile &&
-            'hover:bg-bg-hover cursor-pointer focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50 outline-none',
-        )}
-      >
+      {/* 标题栏 */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0 rounded-t-lg">
         <span className="text-sm font-medium text-text-primary">{t('logs.title')}</span>
         <div className="flex items-center gap-1">
           <button
@@ -218,21 +188,6 @@ export function LogsPanel() {
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
-          {!isMobile && (
-            <span
-              className={clsx(
-                'p-0.5 rounded transition-colors',
-                !sidePanelExpanded ? 'text-accent bg-accent-light' : 'text-text-muted',
-              )}
-            >
-              <ChevronDown
-                className={clsx(
-                  'w-4 h-4 transition-transform duration-150 ease-out',
-                  sidePanelExpanded && 'rotate-180',
-                )}
-              />
-            </span>
-          )}
         </div>
       </div>
 

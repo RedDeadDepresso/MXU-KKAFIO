@@ -1223,8 +1223,6 @@ export const useAppStore = create<AppState>()(
         proxySettings: config.settings.proxy,
         showOptionPreview:
           localLayout?.showOptionPreview ?? config.settings.showOptionPreview ?? true,
-        sidePanelExpanded:
-          localLayout?.sidePanelExpanded ?? config.settings.sidePanelExpanded ?? true,
         rightPanelWidth: localLayout?.rightPanelWidth ?? config.settings.rightPanelWidth ?? 320,
         rightPanelCollapsed:
           localLayout?.rightPanelCollapsed ?? config.settings.rightPanelCollapsed ?? false,
@@ -1575,17 +1573,6 @@ export const useAppStore = create<AppState>()(
           cachedWlrootsSockets: states.cachedWlrootsSockets,
         };
       }),
-
-    // 右侧面板折叠状态
-    sidePanelExpanded: true,
-    setSidePanelExpanded: (expanded) => {
-      set({ sidePanelExpanded: expanded });
-      if (!isTauri()) patchWebUILayout({ sidePanelExpanded: expanded });
-    },
-    toggleSidePanelExpanded: () => {
-      set((state) => ({ sidePanelExpanded: !state.sidePanelExpanded }));
-      if (!isTauri()) patchWebUILayout({ sidePanelExpanded: get().sidePanelExpanded });
-    },
 
     // 右侧面板宽度和折叠状态
     rightPanelWidth: 320,
@@ -2025,7 +2012,6 @@ function generateConfig(): MxuConfig {
           windowSize: bl?.windowSize ?? state.windowSize,
           windowPosition: bl?.windowPosition ?? state.windowPosition,
           showOptionPreview: bl?.showOptionPreview ?? state.showOptionPreview,
-          sidePanelExpanded: bl?.sidePanelExpanded ?? state.sidePanelExpanded,
           rightPanelWidth: bl?.rightPanelWidth ?? state.rightPanelWidth,
           rightPanelCollapsed: bl?.rightPanelCollapsed ?? state.rightPanelCollapsed,
           addTaskPanelHeight: bl?.addTaskPanelHeight ?? state.addTaskPanelHeight,
@@ -2095,7 +2081,6 @@ useAppStore.subscribe(
       windowSize: state.windowSize,
       windowPosition: state.windowPosition,
       showOptionPreview: state.showOptionPreview,
-      sidePanelExpanded: state.sidePanelExpanded,
       rightPanelWidth: state.rightPanelWidth,
       rightPanelCollapsed: state.rightPanelCollapsed,
       addTaskPanelHeight: state.addTaskPanelHeight,

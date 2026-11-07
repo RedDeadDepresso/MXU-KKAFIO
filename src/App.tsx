@@ -93,7 +93,6 @@ const LazyWelcomeDialog = lazy(async () => {
   return { default: module.WelcomeDialog };
 });
 
-
 const LazyInstallConfirmModal = lazy(async () => {
   const module = await import('@/components/InstallConfirmModal');
   return { default: module.InstallConfirmModal };
@@ -157,7 +156,6 @@ function App() {
     projectInterface,
     interfaceTranslations,
     language,
-    sidePanelExpanded,
     setWindowSize: setWindowSizeStore,
     setWindowPosition: setWindowPositionStore,
     setUpdateInfo,
@@ -195,7 +193,6 @@ function App() {
       projectInterface: state.projectInterface,
       interfaceTranslations: state.interfaceTranslations,
       language: state.language,
-      sidePanelExpanded: state.sidePanelExpanded,
       setWindowSize: state.setWindowSize,
       setWindowPosition: state.setWindowPosition,
       setUpdateInfo: state.setUpdateInfo,
@@ -979,7 +976,6 @@ function App() {
       const localLayout = loadWebUILayout();
       if (localLayout) {
         useAppStore.setState({
-          sidePanelExpanded: localLayout.sidePanelExpanded,
           rightPanelWidth: localLayout.rightPanelWidth,
           rightPanelCollapsed: localLayout.rightPanelCollapsed,
           addTaskPanelHeight: localLayout.addTaskPanelHeight,
@@ -1743,7 +1739,7 @@ function App() {
             {/* 右侧信息面板 */}
             {!rightPanelCollapsed && (
               <div
-                className={`flex flex-col p-3 bg-bg-primary overflow-x-hidden border-l border-transparent ${sidePanelExpanded ? 'gap-3 overflow-y-auto' : 'overflow-hidden'}`}
+                className="flex flex-col p-3 bg-bg-primary overflow-x-hidden border-l border-transparent gap-3 overflow-y-auto"
                 style={{
                   width: rightPanelWidth,
                   minWidth: 240,

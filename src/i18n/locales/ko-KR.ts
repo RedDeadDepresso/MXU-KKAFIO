@@ -401,7 +401,6 @@ export default {
     needResource: '먼저 리소스를 로드하세요',
   },
 
-
   // 로그
   logs: {
     title: '실행 로그',
@@ -410,8 +409,6 @@ export default {
     autoscroll: '자동 스크롤',
     noLogs: '로그가 없습니다',
     copyAll: '모두 복사',
-    expand: '상단 패널 펼치기',
-    collapse: '상단 패널 접기',
     scrollToLogs: '로그 보기',
     // 로그 메시지
     messages: {
@@ -550,7 +547,6 @@ export default {
   connection: {
     title: '연결 설정',
   },
-
 
   // 최근 닫은 탭
   recentlyClosed: {

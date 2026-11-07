@@ -403,7 +403,6 @@ export default {
     needResource: 'Please load resources first',
   },
 
-
   // Logs
   logs: {
     title: 'Logs',
@@ -412,8 +411,6 @@ export default {
     autoscroll: 'Auto Scroll',
     noLogs: 'No logs',
     copyAll: 'Copy All',
-    expand: 'Expand panels above',
-    collapse: 'Collapse panels above',
     scrollToLogs: 'View logs',
     // Log messages
     messages: {
@@ -553,7 +550,6 @@ export default {
   connection: {
     title: 'Connection Settings',
   },
-
 
   // Recently Closed
   recentlyClosed: {

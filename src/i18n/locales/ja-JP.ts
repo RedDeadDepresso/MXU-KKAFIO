@@ -404,7 +404,6 @@ export default {
     needResource: '先にリソースを読み込んでください',
   },
 
-
   // ログ
   logs: {
     title: '実行ログ',
@@ -413,8 +412,6 @@ export default {
     autoscroll: '自動スクロール',
     noLogs: 'ログがありません',
     copyAll: 'すべてコピー',
-    expand: '上部パネルを展開',
-    collapse: '上部パネルを折りたたむ',
     scrollToLogs: 'ログを表示',
     // ログメッセージ
     messages: {
@@ -554,7 +551,6 @@ export default {
   connection: {
     title: '接続設定',
   },
-
 
   // 最近閉じたタブ
   recentlyClosed: {

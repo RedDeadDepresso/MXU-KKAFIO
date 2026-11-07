@@ -393,7 +393,6 @@ export default {
     needResource: '请先加载资源',
   },
 
-
   // 日志/信息流
   logs: {
     title: '运行日志',
@@ -402,8 +401,6 @@ export default {
     autoscroll: '自动滚动',
     noLogs: '暂无日志',
     copyAll: '复制全部',
-    expand: '展开上方面板',
-    collapse: '折叠上方面板',
     scrollToLogs: '查看日志',
     // 日志消息
     messages: {
@@ -536,7 +533,6 @@ export default {
   connection: {
     title: '连接设置',
   },
-
 
   // 最近关闭
   recentlyClosed: {
