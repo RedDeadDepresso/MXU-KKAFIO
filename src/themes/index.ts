@@ -19,7 +19,7 @@ const logger = createLogger('Theme');
 // 静态导入所有主题预设（Vite 需要静态导入才能正确打包）
 import lightTheme from './presets/light.json';
 import darkTheme from './presets/dark.json';
-import darkcyanAccent from './presets/accents/darkcyan.json';
+import peacockAccent from './presets/accents/peacock.json';
 import emeraldAccent from './presets/accents/emerald.json';
 import lavaAccent from './presets/accents/lava.json';
 import titaniumAccent from './presets/accents/titanium.json';
@@ -38,7 +38,7 @@ const modeThemes: Record<ThemeMode, ModeTheme> = {
 
 /** 强调色主题映射（内置预设） */
 const accentThemes: Record<AccentColor, AccentTheme> = {
-  darkcyan: darkcyanAccent as AccentTheme,
+  peacock: peacockAccent as AccentTheme,
   emerald: emeraldAccent as AccentTheme,
   lava: lavaAccent as AccentTheme,
   titanium: titaniumAccent as AccentTheme,
@@ -72,7 +72,7 @@ const fixedSemanticColors = {
 
 /** 当前主题状态 */
 let currentMode: ThemeMode = 'light';
-let currentAccent: AccentColor = 'darkcyan';
+let currentAccent: AccentColor = 'peacock';
 
 /**
  * 将主题配置应用到 CSS 变量

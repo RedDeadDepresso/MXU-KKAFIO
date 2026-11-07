@@ -66,7 +66,7 @@ export type ThemeMode = 'light' | 'dark';
 
 /** 预设强调色名称（内置） */
 export type PresetAccentColor =
-  | 'darkcyan' // KKAFIO 珊瑚青
+  | 'peacock' // KKAFIO 孔雀青
   | 'emerald' // 宝石绿
   | 'lava' // 熔岩橙
   | 'titanium' // 钛金属

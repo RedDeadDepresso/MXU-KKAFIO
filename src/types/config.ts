@@ -201,7 +201,7 @@ export function normalizeAddTaskPanelHeight(value: unknown): number {
 }
 
 // 默认强调色
-export const defaultAccentColor: AccentColor = 'darkcyan';
+export const defaultAccentColor: AccentColor = 'peacock';
 
 // 默认快捷键设置
 export const defaultHotkeySettings: HotkeySettings = {

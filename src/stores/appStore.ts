@@ -129,7 +129,7 @@ export const useAppStore = create<AppState>()(
 
     // 主题和语言
     theme: 'light',
-    accentColor: 'darkcyan',
+    accentColor: 'peacock',
     language: 'system',
     backgroundImage: undefined,
     backgroundOpacity: 50,
@@ -577,8 +577,11 @@ export const useAppStore = create<AppState>()(
           // select 类型
           const selectDef = optionDef as import('@/types/interface').SelectOption;
           const caseName =
-            (('default_case' in selectDef ? selectDef.default_case : undefined) as string | undefined) ||
-            selectDef.cases?.[0]?.name || '';
+            (('default_case' in selectDef ? selectDef.default_case : undefined) as
+              | string
+              | undefined) ||
+            selectDef.cases?.[0]?.name ||
+            '';
           optionValues[optionKey] = { type: 'select', caseName };
         }
       }
