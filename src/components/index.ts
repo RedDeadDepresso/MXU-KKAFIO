@@ -22,7 +22,6 @@ export { SettingsPage } from './SettingsPage';
 export { WelcomeDialog } from './WelcomeDialog';
 export { DeviceSelector } from './DeviceSelector';
 export { ResourceSelector } from './ResourceSelector';
-export { DashboardView } from './DashboardView';
 export { SchedulePanel } from './SchedulePanel';
 export { ContextMenu, useContextMenu, getIcon } from './ContextMenu';
 export type { MenuItem, ContextMenuState } from './ContextMenu';

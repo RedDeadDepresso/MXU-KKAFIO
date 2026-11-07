@@ -93,10 +93,6 @@ const LazyWelcomeDialog = lazy(async () => {
   return { default: module.WelcomeDialog };
 });
 
-const LazyDashboardView = lazy(async () => {
-  const module = await import('@/components/DashboardView');
-  return { default: module.DashboardView };
-});
 
 const LazyInstallConfirmModal = lazy(async () => {
   const module = await import('@/components/InstallConfirmModal');
@@ -139,7 +135,6 @@ function App() {
 
   // 页面过渡状态
   const [isSettingsExiting, setIsSettingsExiting] = useState(false);
-  const [isDashboardExiting, setIsDashboardExiting] = useState(false);
 
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -163,8 +158,6 @@ function App() {
     interfaceTranslations,
     language,
     sidePanelExpanded,
-    dashboardView,
-    setDashboardView,
     setWindowSize: setWindowSizeStore,
     setWindowPosition: setWindowPositionStore,
     setUpdateInfo,
@@ -203,8 +196,6 @@ function App() {
       interfaceTranslations: state.interfaceTranslations,
       language: state.language,
       sidePanelExpanded: state.sidePanelExpanded,
-      dashboardView: state.dashboardView,
-      setDashboardView: state.setDashboardView,
       setWindowSize: state.setWindowSize,
       setWindowPosition: state.setWindowPosition,
       setUpdateInfo: state.setUpdateInfo,
@@ -312,15 +303,6 @@ function App() {
       setIsSettingsExiting(false);
     }, PAGE_TRANSITION_DURATION);
   }, [setCurrentPage]);
-
-  // 带退出动画的中控台关闭
-  const closeDashboardWithAnimation = useCallback(() => {
-    setIsDashboardExiting(true);
-    setTimeout(() => {
-      setDashboardView(false);
-      setIsDashboardExiting(false);
-    }, PAGE_TRANSITION_DURATION);
-  }, [setDashboardView]);
 
   const isResizingRef = useRef(false);
 
@@ -1635,7 +1617,7 @@ function App() {
         )}
 
         {/* 新用户引导覆盖层 - 仅在右侧面板可见时显示 */}
-        {!onboardingCompleted && !rightPanelCollapsed && !dashboardView && (
+        {!onboardingCompleted && !rightPanelCollapsed && (
           <Suspense fallback={null}>
             <LazyOnboardingOverlay />
           </Suspense>
@@ -1679,17 +1661,7 @@ function App() {
         {/* 顶部标签栏 */}
         <TabBar />
 
-        {/* 中控台视图 */}
-        {dashboardView ? (
-          <div
-            key="dashboard-view"
-            className={`flex-1 min-h-0 ${isDashboardExiting ? 'page-slide-top-exit' : 'page-slide-top-enter'}`}
-          >
-            <Suspense fallback={null}>
-              <LazyDashboardView onClose={closeDashboardWithAnimation} />
-            </Suspense>
-          </div>
-        ) : isMobile ? (
+        {isMobile ? (
           /* 移动端竖屏布局：单列纵向堆叠 */
           <div key="main-view-mobile" className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* 可滚动主内容区 */}

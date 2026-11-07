@@ -577,23 +577,6 @@ export default {
     title: '接続設定',
   },
 
-  // ダッシュボード
-  dashboard: {
-    title: 'ダッシュボード',
-    toggle: 'ダッシュボード表示',
-    exit: 'ダッシュボードを終了',
-    instances: '件のインスタンス',
-    noInstances: 'インスタンスがありません',
-    running: '実行中',
-    succeeded: '完了',
-    failed: '失敗',
-    noEnabledTasks: '有効なタスクがありません',
-    alignLeft: '左寄せ',
-    alignCenter: '中央寄せ',
-    alignRight: '右寄せ',
-    zoomIn: '拡大',
-    zoomOut: '縮小',
-  },
 
   // 最近閉じたタブ
   recentlyClosed: {

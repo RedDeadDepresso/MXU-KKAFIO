@@ -292,44 +292,12 @@ body {
   }
 }
 
-/* 从顶部滑入（中控台进入） */
-@keyframes slideInFromTop {
-  from {
-    opacity: 0;
-    transform: translateY(-24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 滑出到顶部（中控台退出） */
-@keyframes slideOutToTop {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-24px);
-  }
-}
-
 .page-slide-right-enter {
   animation: slideInFromRight 150ms ease-out forwards;
 }
 
 .page-slide-right-exit {
   animation: slideOutToRight 120ms ease-in forwards;
-}
-
-.page-slide-top-enter {
-  animation: slideInFromTop 150ms ease-out forwards;
-}
-
-.page-slide-top-exit {
-  animation: slideOutToTop 120ms ease-in forwards;
 }
 
 /* Tab animations */

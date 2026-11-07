@@ -331,9 +331,6 @@ export interface AppState {
   setScreenshotPanelExpanded: (expanded: boolean) => void;
 
   // 中控台视图模式
-  dashboardView: boolean;
-  setDashboardView: (enabled: boolean) => void;
-  toggleDashboardView: () => void;
 
   // 窗口大小
   windowSize: WindowSize;

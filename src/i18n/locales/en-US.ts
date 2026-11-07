@@ -576,23 +576,6 @@ export default {
     title: 'Connection Settings',
   },
 
-  // Dashboard
-  dashboard: {
-    title: 'Dashboard',
-    toggle: 'Dashboard View',
-    exit: 'Exit Dashboard',
-    instances: 'instances',
-    noInstances: 'No instances',
-    running: 'Running',
-    succeeded: 'Succeeded',
-    failed: 'Failed',
-    noEnabledTasks: 'No enabled tasks',
-    alignLeft: 'Align cards to left',
-    alignCenter: 'Align cards to center',
-    alignRight: 'Align cards to right',
-    zoomIn: 'Zoom in',
-    zoomOut: 'Zoom out',
-  },
 
   // Recently Closed
   recentlyClosed: {

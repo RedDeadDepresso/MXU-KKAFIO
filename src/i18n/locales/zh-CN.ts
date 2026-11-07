@@ -559,23 +559,6 @@ export default {
     title: '连接设置',
   },
 
-  // 中控台
-  dashboard: {
-    title: '中控台',
-    toggle: '中控台视图',
-    exit: '退出中控台',
-    instances: '个实例',
-    noInstances: '暂无实例',
-    running: '运行中',
-    succeeded: '已完成',
-    failed: '已失败',
-    noEnabledTasks: '没有启用的任务',
-    alignLeft: '靠左排列',
-    alignCenter: '居中排列',
-    alignRight: '靠右排列',
-    zoomIn: '放大',
-    zoomOut: '缩小',
-  },
 
   // 最近关闭
   recentlyClosed: {

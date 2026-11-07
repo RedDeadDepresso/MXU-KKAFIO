@@ -8,7 +8,6 @@ import {
   Sun,
   Moon,
   Check,
-  LayoutGrid,
   Copy,
   Edit3,
   XCircle,
@@ -72,8 +71,6 @@ export function TabBar() {
     projectInterface,
     resolveI18nText,
     language,
-    dashboardView,
-    toggleDashboardView,
     updateInfo,
     recentlyClosed,
     downloadStatus,
@@ -560,16 +557,6 @@ export function TabBar() {
             <History className="w-4 h-4" />
           </button>
         )}
-        <button
-          onClick={toggleDashboardView}
-          className={clsx(
-            'p-2 rounded-md transition-colors',
-            dashboardView ? 'bg-accent/10 text-accent' : 'hover:bg-bg-hover text-text-secondary',
-          )}
-          title={t('dashboard.toggle')}
-        >
-          <LayoutGrid className="w-4 h-4" />
-        </button>
         <button
           onClick={toggleTheme}
           className="p-2 rounded-md hover:bg-bg-hover transition-colors"

@@ -573,23 +573,6 @@ export default {
     title: '연결 설정',
   },
 
-  // 대시보드
-  dashboard: {
-    title: '대시보드',
-    toggle: '대시보드 보기',
-    exit: '대시보드 나가기',
-    instances: '개의 인스턴스',
-    noInstances: '인스턴스가 없습니다',
-    running: '실행 중',
-    succeeded: '완료',
-    failed: '실패',
-    noEnabledTasks: '활성화된 작업이 없습니다',
-    alignLeft: '왼쪽 정렬',
-    alignCenter: '가운데 정렬',
-    alignRight: '오른쪽 정렬',
-    zoomIn: '확대',
-    zoomOut: '축소',
-  },
 
   // 최근 닫은 탭
   recentlyClosed: {

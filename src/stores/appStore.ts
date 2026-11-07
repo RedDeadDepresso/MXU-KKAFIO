@@ -1637,9 +1637,6 @@ export const useAppStore = create<AppState>()(
     },
 
     // 中控台视图模式
-    dashboardView: false,
-    setDashboardView: (enabled) => set({ dashboardView: enabled }),
-    toggleDashboardView: () => set((state) => ({ dashboardView: !state.dashboardView })),
 
     // 窗口大小
     windowSize: defaultWindowSize,

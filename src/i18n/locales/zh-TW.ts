@@ -560,23 +560,6 @@ export default {
     title: '連接設定',
   },
 
-  // 中控台
-  dashboard: {
-    title: '中控台',
-    toggle: '中控台檢視',
-    exit: '退出中控台',
-    instances: '個執行個體',
-    noInstances: '暫無執行個體',
-    running: '執行中',
-    succeeded: '已完成',
-    failed: '已失敗',
-    noEnabledTasks: '沒有啟用的任務',
-    alignLeft: '靠左排列',
-    alignCenter: '置中排列',
-    alignRight: '靠右排列',
-    zoomIn: '放大',
-    zoomOut: '縮小',
-  },
 
   // 最近關閉
   recentlyClosed: {
