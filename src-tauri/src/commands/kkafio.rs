@@ -586,9 +586,10 @@ pub struct RunGameResult {
 }
 
 /// Try to launch Koikatsu from `game_path`.
-/// `game_type` selects the expected exe name:
-///   "KoikatsuParty"    → "Koikatsu Party.exe"
+/// `game_type` selects the expected exe name (defaults to "Koikatsu" when
+/// omitted or unrecognised):
 ///   "Koikatsu"         → "Koikatu.exe"
+///   "KoikatsuParty"    → "Koikatsu Party.exe"
 ///   "KoikatsuSunshine" → "KoikatsuSunshine.exe" | "Koikatsu Sunshine.exe"
 /// Falls back to scanning all known exe names if the primary is not found.
 #[tauri::command]
@@ -600,10 +601,11 @@ pub fn kkafio_run_game(game_path: String, game_type: Option<String>) -> RunGameR
 
     // Build candidate list — primary exe first based on game_type, then fallbacks
     let mut candidates: Vec<&str> = Vec::new();
-    match game_type.as_deref().unwrap_or("KoikatsuParty") {
-        "Koikatsu"         => candidates.extend(["Koikatu.exe", "Koikatsu Party.exe", "KoikatsuSunshine.exe", "Koikatsu Sunshine.exe"]),
+    match game_type.as_deref().unwrap_or("Koikatsu") {
+        "KoikatsuParty"    => candidates.extend(["Koikatsu Party.exe", "Koikatu.exe", "KoikatsuSunshine.exe", "Koikatsu Sunshine.exe"]),
         "KoikatsuSunshine" => candidates.extend(["KoikatsuSunshine.exe", "Koikatsu Sunshine.exe", "Koikatsu Party.exe", "Koikatu.exe"]),
-        _                  => candidates.extend(["Koikatsu Party.exe", "Koikatu.exe", "KoikatsuSunshine.exe", "Koikatsu Sunshine.exe"]),
+        // "Koikatsu" and anything unrecognised
+        _                  => candidates.extend(["Koikatu.exe", "Koikatsu Party.exe", "KoikatsuSunshine.exe", "Koikatsu Sunshine.exe"]),
     }
 
     let exe_path = candidates.iter().map(|name| base.join(name)).find(|p| p.exists());
