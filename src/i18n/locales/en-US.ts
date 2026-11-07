@@ -841,5 +841,10 @@ export default {
     title: 'Game Settings',
     gameType: 'Game Type',
     gamePath: 'Game Installation Path',
+    inherited: 'inherited',
+    inheritedFrom: 'Using Game Settings from "{{name}}"',
+    customize: 'Customize',
+    resetToInherited: 'Use settings from "{{name}}"',
+    noPath: 'No game path set. Set one here or in another instance.',
   },
 };

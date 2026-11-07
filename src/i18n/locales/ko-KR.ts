@@ -837,5 +837,10 @@ export default {
     title: '게임 설정',
     gameType: '게임 종류',
     gamePath: '게임 설치 경로',
+    inherited: '상속됨',
+    inheritedFrom: '"{{name}}"의 게임 설정 사용 중',
+    customize: '사용자 지정',
+    resetToInherited: '"{{name}}"의 설정 사용',
+    noPath: '게임 경로가 설정되지 않았습니다. 여기 또는 다른 인스턴스에서 설정하세요.',
   },
 };

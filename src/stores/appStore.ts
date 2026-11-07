@@ -732,6 +732,17 @@ export const useAppStore = create<AppState>()(
       }));
     },
 
+    clearGlobalOptionValues: (instanceId, optionKeys) => {
+      set((state) => ({
+        instances: state.instances.map((i) => {
+          if (i.id !== instanceId) return i;
+          const next = { ...(i.globalOptionValues ?? {}) };
+          optionKeys.forEach((key) => delete next[key]);
+          return { ...i, globalOptionValues: next };
+        }),
+      }));
+    },
+
     selectAllTasks: (instanceId, enabled) =>
       set((state) => {
         const { controllerName, resourceName } = getCurrentControllerAndResource(state, instanceId);

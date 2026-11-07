@@ -820,5 +820,10 @@ export default {
     title: '游戏设置',
     gameType: '游戏类型',
     gamePath: '游戏安装路径',
+    inherited: '继承',
+    inheritedFrom: '正在使用"{{name}}"的游戏设置',
+    customize: '自定义',
+    resetToInherited: '使用"{{name}}"的设置',
+    noPath: '未设置游戏路径。请在此处或其他配置中设置。',
   },
 };

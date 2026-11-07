@@ -190,6 +190,7 @@ export interface AppState {
     optionKey: string,
     value: OptionValue,
   ) => void;
+  clearGlobalOptionValues: (instanceId: string, optionKeys: string[]) => void;
   selectAllTasks: (instanceId: string, enabled: boolean) => void;
   collapseAllTasks: (instanceId: string, expanded: boolean) => void;
   renameTask: (instanceId: string, taskId: string, newName: string) => void;

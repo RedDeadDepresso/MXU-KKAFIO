@@ -844,5 +844,10 @@ export default {
     title: 'ゲーム設定',
     gameType: 'ゲームの種類',
     gamePath: 'ゲームインストールパス',
+    inherited: '継承',
+    inheritedFrom: '「{{name}}」のゲーム設定を使用中',
+    customize: 'カスタマイズ',
+    resetToInherited: '「{{name}}」の設定を使用',
+    noPath: 'ゲームパスが未設定です。ここまたは他のインスタンスで設定してください。',
   },
 };
