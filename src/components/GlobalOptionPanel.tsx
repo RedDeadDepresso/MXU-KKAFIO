@@ -142,7 +142,7 @@ export function GlobalOptionPanel({ instanceId }: GlobalOptionPanelProps) {
         'kkafio_organize_library', { cwd: basePath, instanceIndex: index >= 0 ? index : 0 },
       );
       if (result.ok) {
-        toast.success(t('options.gameFolder.organizeLibraryStarted', 'Organize Library started'));
+        toast.success(t('options.gameFolder.organizeLibraryStarted', 'Opening Organize Library…'));
       } else {
         toast.error(result.error);
       }
@@ -190,7 +190,7 @@ export function GlobalOptionPanel({ instanceId }: GlobalOptionPanelProps) {
   const menuItems: MenuItem[] = [
     { label: t('options.folder.showInExplorer', 'Show in Explorer'), disabled: !folderPath, onClick: handleShowInExplorer },
     { label: t('options.folder.browse', 'Browse…'), onClick: handleBrowse },
-    { label: t('options.gameFolder.organizeLibrary', 'Organize Library'), disabled: !folderPath, onClick: handleOrganizeLibrary },
+    { label: t('options.gameFolder.organizeLibrary', 'Organize Library…'), disabled: !folderPath, onClick: handleOrganizeLibrary },
     { label: t('options.gameFolder.run', 'Run Game'), disabled: !folderPath, onClick: handleRunGame },
     { label: t('options.gameFolder.runStudio', 'Run Studio'), disabled: !folderPath, onClick: handleRunStudio },
   ];

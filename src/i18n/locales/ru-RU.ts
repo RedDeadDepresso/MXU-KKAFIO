@@ -839,8 +839,8 @@ export default {
       empty: 'Файлы ещё не добавлены',
     },
     gameFolder: {
-      organizeLibrary: 'Упорядочить библиотеку',
-      organizeLibraryStarted: 'Упорядочивание библиотеки запущено',
+      organizeLibrary: 'Упорядочить библиотеку…',
+      organizeLibraryStarted: 'Открывается упорядочивание библиотеки…',
       run: 'Запустить игру',
       runStudio: 'Запустить Studio',
     },
