@@ -104,14 +104,14 @@ export function VCRedistModal({ show, onClose }: VCRedistModalProps) {
 
       // 3. 重试加载 DLL
       setStatus('retrying');
-      log.info('尝试重新加载 MaaFramework...');
+      log.info('尝试重新加载运行库...');
 
       try {
         const version = await invoke<string>('retry_load_maa_library');
-        log.info(`MaaFramework 加载成功，版本: ${version}`);
+        log.info(`运行库加载成功，版本: ${version}`);
         setStatus('success');
       } catch (retryErr) {
-        log.warn('重新加载 MaaFramework 失败:', retryErr);
+        log.warn('重新加载运行库失败:', retryErr);
         setStatus('failed');
         setError(t('vcredist.stillFailed', '安装完成，但加载仍然失败。请重启电脑后再试。'));
       }
@@ -205,10 +205,7 @@ export function VCRedistModal({ show, onClose }: VCRedistModalProps) {
           {/* 说明文字 */}
           <div className="text-sm text-text-secondary">
             <p>
-              {t(
-                'vcredist.description',
-                'MaaFramework 需要 Microsoft Visual C++ 运行库才能正常工作。',
-              )}
+              {t('vcredist.description', '本程序需要 Microsoft Visual C++ 运行库才能正常工作。')}
             </p>
           </div>
 

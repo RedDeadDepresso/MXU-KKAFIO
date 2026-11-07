@@ -392,9 +392,8 @@ export default {
     incompatibleController: '현재 컨트롤러에서 지원되지 않음',
   },
 
-  // MaaFramework
+  // Connection
   maa: {
-    notInitialized: 'MaaFramework가 초기화되지 않았습니다',
     initFailed: '초기화에 실패했습니다',
     version: '버전',
     needConnection: '먼저 기기를 연결하세요',
@@ -475,7 +474,6 @@ export default {
     title: '디버그',
     versions: '버전 정보',
     interfaceVersion: '{{name}} 버전',
-    maafwVersion: 'maafw 버전',
     mxuVersion: 'mxu 버전',
     environment: '실행 환경',
     envTauri: 'Tauri 데스크톱',
@@ -744,15 +742,6 @@ export default {
     openFolder: '폴더 열기',
   },
 
-  // 버전 경고
-  versionWarning: {
-    title: 'MaaFramework 버전이 너무 낮습니다',
-    message:
-      '현재 MaaFramework 버전 ({{current}})이 지원되는 최소 버전 ({{minimum}})보다 낮습니다. 일부 기능이 제대로 작동하지 않을 수 있습니다.',
-    suggestion: 'MaaFramework 버전을 업데이트하려면 프로젝트 개발자에게 문의하세요.',
-    understand: '확인했습니다',
-  },
-
   // 권한 프롬프트
   permission: {
     title: '관리자 권한이 필요합니다',
@@ -773,7 +762,7 @@ export default {
   // VC++ 런타임
   vcredist: {
     title: '런타임 누락',
-    description: 'MaaFramework가 제대로 작동하려면 Microsoft Visual C++ 런타임이 필요합니다.',
+    description: '이 앱이 제대로 작동하려면 Microsoft Visual C++ 런타임이 필요합니다.',
     downloading: '런타임 다운로드 중...',
     downloadFailed: '다운로드 실패',
     waitingInstall: '설치 완료를 기다리고 있습니다. 설치 프로그램에서 설치를 완료하세요...',

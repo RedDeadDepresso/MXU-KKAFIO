@@ -157,15 +157,6 @@ export function AboutSection() {
           <p className="text-xs text-text-muted">
             Powered by{' '}
             <a
-              href="https://maafw.xyz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent hover:underline"
-            >
-              MaaFramework
-            </a>
-            {' & '}
-            <a
               href="https://github.com/MistEO/MXU"
               target="_blank"
               rel="noopener noreferrer"

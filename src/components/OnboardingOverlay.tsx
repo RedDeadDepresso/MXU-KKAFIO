@@ -33,7 +33,7 @@ async function loadDriverFactory(): Promise<DriverFactory> {
 /**
  * 检查当前是否有任何模态弹窗（z-50 级别的 fixed 遮罩）正在显示。
  * 涵盖 WelcomeDialog、InstallConfirmModal、VCRedistModal、
- * BadPathModal、VersionWarningModal 等所有全局遮罩。
+ * BadPathModal 等所有全局遮罩。
  */
 function hasActiveModal(): boolean {
   // 所有模态弹窗都使用 fixed inset-0 z-50 的模式

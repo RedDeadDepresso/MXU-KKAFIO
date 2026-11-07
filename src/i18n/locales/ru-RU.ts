@@ -396,9 +396,8 @@ export default {
     incompatibleController: 'Не поддерживается текущим контроллером',
   },
 
-  // MaaFramework
+  // Connection
   maa: {
-    notInitialized: 'MaaFramework не инициализирован',
     initFailed: 'Ошибка инициализации',
     version: 'Версия',
     needConnection: 'Сначала подключите устройство',
@@ -481,7 +480,6 @@ export default {
     title: 'Отладка',
     versions: 'Версии',
     interfaceVersion: 'Версия {{name}}',
-    maafwVersion: 'Версия maafw',
     mxuVersion: 'Версия mxu',
     environment: 'Окружение',
     envTauri: 'Настольная версия (Tauri)',
@@ -752,14 +750,6 @@ export default {
     openFolder: 'Открыть папку с файлом',
   },
 
-  // Предупреждение о версии
-  versionWarning: {
-    title: 'Версия MaaFramework слишком старая',
-    message:
-      'Текущая версия MaaFramework ({{current}}) ниже минимально поддерживаемой версии ({{minimum}}). Некоторые функции могут работать некорректно.',
-    suggestion: 'Пожалуйста, свяжитесь с разработчиком проекта, чтобы обновить MaaFramework.',
-    understand: 'Понятно',
-  },
 
   // Запрос прав
   permission: {
@@ -781,7 +771,7 @@ export default {
   // Среда выполнения VC++
   vcredist: {
     title: 'Отсутствует среда выполнения',
-    description: 'Для корректной работы MaaFramework требуется среда выполнения Microsoft Visual C++.',
+    description: 'Для корректной работы приложения требуется среда выполнения Microsoft Visual C++.',
     downloading: 'Загрузка среды выполнения...',
     downloadFailed: 'Ошибка загрузки',
     waitingInstall:

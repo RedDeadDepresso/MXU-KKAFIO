@@ -48,7 +48,7 @@ export function LoadingScreen({
           {/* Logo/标题 */}
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-text-primary">{displayTitle}</h1>
-            <p className="text-text-secondary">{displaySubtitle}</p>
+            {displaySubtitle && <p className="text-text-secondary">{displaySubtitle}</p>}
           </div>
 
           {/* 加载状态 - 路径检查中或正常加载中 */}

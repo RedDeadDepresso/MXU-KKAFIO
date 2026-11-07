@@ -395,9 +395,8 @@ export default {
     incompatibleController: '現在のコントローラーに対応していません',
   },
 
-  // MaaFramework
+  // Connection
   maa: {
-    notInitialized: 'MaaFramework が初期化されていません',
     initFailed: '初期化に失敗しました',
     version: 'バージョン',
     needConnection: '先にデバイスを接続してください',
@@ -478,7 +477,6 @@ export default {
     title: 'デバッグ',
     versions: 'バージョン情報',
     interfaceVersion: '{{name}} バージョン',
-    maafwVersion: 'maafw バージョン',
     mxuVersion: 'mxu バージョン',
     environment: '実行環境',
     envTauri: 'Tauri デスクトップ',
@@ -750,16 +748,6 @@ export default {
     openFolder: 'フォルダを開く',
   },
 
-  // バージョン警告
-  versionWarning: {
-    title: 'MaaFramework バージョンが古すぎます',
-    message:
-      '現在の MaaFramework バージョン ({{current}}) は、サポートされている最低バージョン ({{minimum}}) より低いです。一部の機能が正常に動作しない可能性があります。',
-    suggestion:
-      'MaaFramework のバージョンを更新するよう、プロジェクト開発者にお問い合わせください。',
-    understand: '了解しました',
-  },
-
   // 権限プロンプト
   permission: {
     title: '管理者権限が必要です',
@@ -780,7 +768,7 @@ export default {
   // VC++ ランタイム
   vcredist: {
     title: 'ランタイムが見つかりません',
-    description: 'MaaFramework を正しく動作させるには、Microsoft Visual C++ ランタイムが必要です。',
+    description: 'このアプリを正しく動作させるには、Microsoft Visual C++ ランタイムが必要です。',
     downloading: 'ランタイムをダウンロード中...',
     downloadFailed: 'ダウンロード失敗',
     waitingInstall:

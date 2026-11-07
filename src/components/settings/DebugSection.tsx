@@ -38,7 +38,6 @@ export function DebugSection() {
   } = useAppStore();
 
   const [mxuVersion, setMxuVersion] = useState<string | null>(null);
-  const [maafwVersion, setMaafwVersion] = useState<string | null>(null);
   const [exeDir, setExeDir] = useState<string | null>(null);
   const [cwd, setCwd] = useState<string | null>(null);
   const [webview2Dir, setWebview2Dir] = useState<{ path: string; system: boolean } | null>(null);
@@ -74,9 +73,6 @@ export function DebugSection() {
       } else {
         setMxuVersion(__MXU_VERSION__ || null);
       }
-
-      // maafw version removed (MaaFramework not used)
-      setMaafwVersion(null);
 
       // 路径信息和系统信息（仅在 Tauri 环境有意义）
       if (isTauri()) {
@@ -217,12 +213,6 @@ export function DebugSection() {
           <p>
             {t('debug.interfaceVersion', { name: projectInterface?.name || 'interface' })}:{' '}
             <span className="font-mono text-text-primary">{version || '-'}</span>
-          </p>
-          <p>
-            {t('debug.maafwVersion')}:{' '}
-            <span className="font-mono text-text-primary">
-              {maafwVersion || t('maa.notInitialized')}
-            </span>
           </p>
           <p>
             {t('debug.mxuVersion')}:{' '}

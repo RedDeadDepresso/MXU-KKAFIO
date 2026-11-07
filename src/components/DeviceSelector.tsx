@@ -163,12 +163,10 @@ export function DeviceSelector({
     setError(null);
 
     try {
-      // 确保 MaaFramework 已初始化
+      // 确保已初始化
       const initialized = await ensureMaaInitialized();
       if (!initialized) {
-        throw new Error(
-          '无法初始化 MaaFramework，请确保 MaaFramework 和 MaaToolkit 动态库在正确的位置',
-        );
+        throw new Error(t('maa.initFailed'));
       }
 
       if (controllerType === 'Adb') {
@@ -216,10 +214,10 @@ export function DeviceSelector({
     setError(null);
 
     try {
-      // 确保 MaaFramework 已初始化（用户可能跳过刷新直接点连接）
+      // 确保已初始化（用户可能跳过刷新直接点连接）
       const initialized = await ensureMaaInitialized();
       if (!initialized) {
-        throw new Error('无法初始化 MaaFramework，请确保 MaaFramework 动态库在正确的位置');
+        throw new Error(t('maa.initFailed'));
       }
 
       // 确保实例已创建
@@ -333,7 +331,7 @@ export function DeviceSelector({
     try {
       const initialized = await ensureMaaInitialized();
       if (!initialized) {
-        throw new Error('无法初始化 MaaFramework，请确保 MaaFramework 动态库在正确的位置');
+        throw new Error(t('maa.initFailed'));
       }
 
       await maaService.createInstance(instanceId).catch(() => {});
@@ -375,7 +373,7 @@ export function DeviceSelector({
     try {
       const initialized = await ensureMaaInitialized();
       if (!initialized) {
-        throw new Error('无法初始化 MaaFramework，请确保 MaaFramework 动态库在正确的位置');
+        throw new Error(t('maa.initFailed'));
       }
 
       await maaService.createInstance(instanceId).catch(() => {});
@@ -424,7 +422,7 @@ export function DeviceSelector({
     try {
       const initialized = await ensureMaaInitialized();
       if (!initialized) {
-        throw new Error('无法初始化 MaaFramework，请确保 MaaFramework 动态库在正确的位置');
+        throw new Error(t('maa.initFailed'));
       }
 
       await maaService.createInstance(instanceId).catch(() => {});

@@ -394,9 +394,8 @@ export default {
     incompatibleController: 'Not supported by current controller',
   },
 
-  // MaaFramework
+  // Connection
   maa: {
-    notInitialized: 'MaaFramework not initialized',
     initFailed: 'Initialization failed',
     version: 'Version',
     needConnection: 'Please connect a device first',
@@ -478,7 +477,6 @@ export default {
     title: 'Debug',
     versions: 'Versions',
     interfaceVersion: '{{name}} version',
-    maafwVersion: 'maafw version',
     mxuVersion: 'mxu version',
     environment: 'Environment',
     envTauri: 'Tauri Desktop',
@@ -747,15 +745,6 @@ export default {
     openFolder: 'Open Containing Folder',
   },
 
-  // Version warning
-  versionWarning: {
-    title: 'MaaFramework Version Too Low',
-    message:
-      'Current MaaFramework version ({{current}}) is lower than the minimum supported version ({{minimum}}). Some features may not work properly.',
-    suggestion: 'Please contact the project developer to update MaaFramework.',
-    understand: 'I Understand',
-  },
-
   // Permission prompt
   permission: {
     title: 'Administrator Privileges Required',
@@ -776,7 +765,7 @@ export default {
   // VC++ Runtime
   vcredist: {
     title: 'Missing Runtime',
-    description: 'MaaFramework requires Microsoft Visual C++ Runtime to work properly.',
+    description: 'This app requires Microsoft Visual C++ Runtime to work properly.',
     downloading: 'Downloading runtime...',
     downloadFailed: 'Download Failed',
     waitingInstall:

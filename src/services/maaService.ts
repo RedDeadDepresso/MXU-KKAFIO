@@ -25,7 +25,7 @@ async function syncMaaVersionToStore(version: string): Promise<void> {
     const { useAppStore } = await import('@/stores/appStore');
     useAppStore.getState().setMaaInitialized(true, version);
   } catch (err) {
-    log.debug('同步 MaaFramework 版本到 store 失败:', err);
+    log.debug('同步版本到 store 失败:', err);
   }
 }
 
@@ -64,7 +64,7 @@ export const maaService = {
    * @returns 版本号
    */
   async init(libDir?: string): Promise<string> {
-    log.info('初始化 MaaFramework, libDir:', libDir || '(默认)');
+    log.info('初始化 Maa, libDir:', libDir || '(默认)');
 
     if (!isTauri()) {
       // 浏览器模式：查询后端是否已初始化，直接复用 Tauri WebView 的初始化结果
@@ -74,16 +74,16 @@ export const maaService = {
       const version = result.version ?? '';
       if (result.initialized) {
         await syncMaaVersionToStore(version || 'unknown');
-        log.info('MaaFramework 已初始化 (HTTP)，版本:', version || '(未知)');
+        log.info('Maa 已初始化 (HTTP)，版本:', version || '(未知)');
       } else {
-        log.warn('MaaFramework 后端尚未初始化');
+        log.warn('Maa 后端尚未初始化');
       }
       return version;
     }
 
     const version = await invoke<string>('maa_init', { libDir: libDir || null });
     await syncMaaVersionToStore(version);
-    log.info('MaaFramework 版本:', version);
+    log.info('Maa 版本:', version);
     return version;
   },
 
@@ -102,7 +102,7 @@ export const maaService = {
    * 获取 MaaFramework 版本
    */
   async getVersion(): Promise<string> {
-    log.debug('获取 MaaFramework 版本...');
+    log.debug('获取 Maa 版本...');
     if (!isTauri()) {
       const result = await apiGet<{ initialized: boolean; version: string | null }>(
         '/maa/initialized',
@@ -113,31 +113,8 @@ export const maaService = {
     }
     const version = await invoke<string>('maa_get_version');
     await syncMaaVersionToStore(version);
-    log.info('MaaFramework 版本:', version);
+    log.info('Maa 版本:', version);
     return version;
-  },
-
-  /**
-   * 检查 MaaFramework 版本是否满足最小要求
-   */
-  async checkVersion(): Promise<{ current: string; minimum: string; is_compatible: boolean }> {
-    log.debug('检查 MaaFramework 版本...');
-    if (!isTauri()) {
-      // 浏览器模式：从已初始化信息推断版本（后端已完成版本校验）
-      const result = await apiGet<{ initialized: boolean; version: string | null }>(
-        '/maa/initialized',
-      );
-      return {
-        current: result.version ?? '',
-        minimum: '',
-        is_compatible: result.initialized,
-      };
-    }
-    const result = await invoke<{ current: string; minimum: string; is_compatible: boolean }>(
-      'maa_check_version',
-    );
-    log.info('版本检查结果:', result);
-    return result;
   },
 
   /**

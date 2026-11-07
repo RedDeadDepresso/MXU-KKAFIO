@@ -385,9 +385,8 @@ export default {
     incompatibleController: '不支援目前控制器',
   },
 
-  // MaaFramework
+  // Connection
   maa: {
-    notInitialized: 'MaaFramework 未初始化',
     initFailed: '初始化失敗',
     version: '版本',
     needConnection: '請先連接裝置',
@@ -468,7 +467,6 @@ export default {
     title: '除錯',
     versions: '版本資訊',
     interfaceVersion: '{{name}} 版本',
-    maafwVersion: 'maafw 版本',
     mxuVersion: 'mxu 版本',
     environment: '執行環境',
     envTauri: 'Tauri 桌面端',
@@ -731,15 +729,6 @@ export default {
     openFolder: '開啟所在資料夾',
   },
 
-  // 版本警告
-  versionWarning: {
-    title: 'MaaFramework 版本過低',
-    message:
-      '目前 MaaFramework 版本 ({{current}}) 低於最低支援版本 ({{minimum}})，部分功能可能無法正常工作。',
-    suggestion: '請聯絡專案開發者更新 MaaFramework 版本。',
-    understand: '我已了解',
-  },
-
   // 權限提示
   permission: {
     title: '需要管理員權限',
@@ -759,7 +748,7 @@ export default {
   // VC++ 執行库
   vcredist: {
     title: '缺少執行库',
-    description: 'MaaFramework 需要 Microsoft Visual C++ 執行库才能正常工作。',
+    description: '本程式需要 Microsoft Visual C++ 執行库才能正常工作。',
     downloading: '正在下載執行库...',
     downloadFailed: '下載失敗',
     waitingInstall: '正在等待安裝完成，請在彈出的安裝程式中完成安裝...',

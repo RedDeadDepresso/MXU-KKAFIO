@@ -113,17 +113,9 @@ const LazyBadPathModal = lazy(async () => {
   return { default: module.BadPathModal };
 });
 
-const LazyVersionWarningModal = lazy(async () => {
-  const module = await import('./components/app/VersionWarningModal');
-  return { default: module.VersionWarningModal };
-});
-
 function App() {
   const [loadingState, setLoadingState] = useState<LoadingState>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [versionWarning, setVersionWarning] = useState<{ current: string; minimum: string } | null>(
-    null,
-  );
   const [showVCRedistModal, setShowVCRedistModal] = useState(false);
   const [showBadPathModal, setShowBadPathModal] = useState(false);
   const [badPathType, setBadPathType] = useState<BadPathType>('root');
@@ -1548,7 +1540,7 @@ function App() {
 
   // 计算显示标题（根据 ProjectInterface V2 协议）
   const getDisplayTitle = () => {
-    if (!projectInterface) return { title: 'MXU', subtitle: 'MaaFramework 下一代通用 GUI' };
+    if (!projectInterface) return { title: 'MXU', subtitle: '' };
 
     const langKey = getInterfaceLangKey(language);
     const translations = interfaceTranslations[langKey];
@@ -1566,7 +1558,7 @@ function App() {
     // 副标题：使用 description（支持国际化）或默认
     const subtitle = projectInterface.description
       ? resolveI18nText(projectInterface.description, translations)
-      : 'MaaFramework 下一代通用 GUI';
+      : '';
 
     return { title, subtitle };
   };
@@ -1638,17 +1630,6 @@ function App() {
         {showBadPathModal && (
           <Suspense fallback={null}>
             <LazyBadPathModal show={showBadPathModal} type={badPathType} />
-          </Suspense>
-        )}
-
-        {/* MaaFramework 版本警告弹窗 */}
-        {versionWarning && (
-          <Suspense fallback={null}>
-            <LazyVersionWarningModal
-              current={versionWarning.current}
-              minimum={versionWarning.minimum}
-              onClose={() => setVersionWarning(null)}
-            />
           </Suspense>
         )}
 
