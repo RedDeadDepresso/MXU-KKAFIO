@@ -143,7 +143,9 @@ fn resolve_cli(cwd: &str) -> Result<(String, Vec<String>), String> {
 /// `cwd` must be the directory that contains `kkafio_cli.exe` (or
 /// `kkafio_cli.py`). The CLI reads its `config.json` from `%APPDATA%/KKAFIO/`
 /// automatically; MXU just launches it and streams the output.
-#[tauri::command]
+// `async`: run on Tauri's worker threads instead of the main (UI) thread — this
+// command can wait on the previous child process (kill + wait).
+#[tauri::command(async)]
 pub fn kkafio_start(
     app: tauri::AppHandle,
     state: State<'_, Arc<KkafioState>>,
@@ -359,7 +361,9 @@ const GRACEFUL_STOP_TIMEOUT: std::time::Duration = std::time::Duration::from_sec
 /// AttachConsole and explicitly restore them with SetStdHandle right after
 /// FreeConsole, so no stale/closed handle is left behind for a later
 /// CreateProcess to try to inherit.
-#[tauri::command]
+// `async`: stopping polls for the CLI to exit (sleep loop) while holding the
+// child lock, which must not block the main (UI) thread.
+#[tauri::command(async)]
 pub fn kkafio_stop(state: State<'_, Arc<KkafioState>>) -> Result<(), String> {
     let mut guard = state.child.lock().map_err(|e| e.to_string())?;
     if let Some(mut child) = guard.take() {
@@ -519,7 +523,8 @@ pub struct TrashResult {
 /// - `path`          — absolute path to a file or folder.
 /// - `delete_folder` — when true the folder at `path` itself is trashed;
 ///                     when false only its *contents* are trashed.
-#[tauri::command]
+// `async`: trashing many items is slow on Windows; keep it off the main (UI) thread.
+#[tauri::command(async)]
 pub fn kkafio_trash(path: String, delete_folder: bool) -> TrashResult {
     use std::fs;
 
