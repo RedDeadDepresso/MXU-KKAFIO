@@ -813,6 +813,8 @@ export default {
       empty: '尚未新增任何檔案',
     },
     gameFolder: {
+      organizeLibrary: '整理資源庫',
+      organizeLibraryStarted: '已開始整理資源庫',
       run: '執行遊戲',
       runStudio: '執行 Studio',
     },

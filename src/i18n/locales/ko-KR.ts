@@ -830,6 +830,8 @@ export default {
       empty: '추가된 파일이 없습니다',
     },
     gameFolder: {
+      organizeLibrary: '라이브러리 정리',
+      organizeLibraryStarted: '라이브러리 정리를 시작했습니다',
       run: '게임 실행',
       runStudio: '스튜디오 실행',
     },

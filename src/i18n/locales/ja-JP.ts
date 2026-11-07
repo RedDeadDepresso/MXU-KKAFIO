@@ -837,6 +837,8 @@ export default {
       empty: 'ファイルはまだ追加されていません',
     },
     gameFolder: {
+      organizeLibrary: 'ライブラリを整理',
+      organizeLibraryStarted: 'ライブラリの整理を開始しました',
       run: 'ゲームを起動',
       runStudio: 'スタジオを起動',
     },

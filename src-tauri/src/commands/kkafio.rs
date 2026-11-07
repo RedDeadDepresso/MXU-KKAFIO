@@ -648,6 +648,65 @@ pub fn kkafio_run_game(game_path: String, game_type: Option<String>) -> RunGameR
 }
 
 // ============================================================================
+// Organize Library command
+// ============================================================================
+
+/// Run `kkafio_cli organize-library --game-folders` as a separate, detached
+/// process (like Run Game): it is not tracked in `KkafioState`, so it doesn't
+/// interfere with the main run process and survives MXU exiting.
+///
+/// `cwd` must be the directory that contains `kkafio_cli.exe` (or
+/// `kkafio_cli.py`). `instance_index` is passed as the global `--instance N`
+/// flag so the CLI resolves game folders for the right instance.
+#[tauri::command]
+pub fn kkafio_organize_library(cwd: String, instance_index: Option<usize>) -> RunGameResult {
+    let (program, mut args) = match resolve_cli(&cwd) {
+        Ok(v) => v,
+        Err(e) => return RunGameResult { ok: false, exe: String::new(), error: e },
+    };
+
+    // resolve_cli() always ends its args with the "run" subcommand (see
+    // kkafio_start) — swap it for the organize-library subcommand.
+    args.pop();
+    if let Some(idx) = instance_index {
+        args.push("--instance".to_string());
+        args.push(idx.to_string());
+    }
+    args.push("organize-library".to_string());
+    args.push("--game-folders".to_string());
+
+    log::info!("[kkafio] organize library: {} {:?} in {}", program, args, cwd);
+
+    #[cfg(windows)]
+    let mut cmd = {
+        use std::os::windows::process::CommandExt;
+        // DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP so it survives MXU exit
+        const DETACHED_PROCESS: u32 = 0x0000_0008;
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        let mut c = Command::new(&program);
+        c.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
+        c
+    };
+    #[cfg(not(windows))]
+    let mut cmd = Command::new(&program);
+
+    let result = cmd
+        .args(&args)
+        .current_dir(&cwd)
+        .env("PYTHONIOENCODING", "utf-8")
+        .env("PYTHONUTF8", "1")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn();
+
+    match result {
+        Ok(_) => RunGameResult { ok: true, exe: program, error: String::new() },
+        Err(e) => RunGameResult { ok: false, exe: program, error: e.to_string() },
+    }
+}
+
+// ============================================================================
 // Run Studio command
 // ============================================================================
 

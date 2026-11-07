@@ -834,6 +834,8 @@ export default {
       empty: 'No files added yet',
     },
     gameFolder: {
+      organizeLibrary: 'Organize Library',
+      organizeLibraryStarted: 'Organize Library started',
       run: 'Run Game',
       runStudio: 'Run Studio',
     },

@@ -158,6 +158,7 @@ pub fn run() {
             commands::kkafio::kkafio_is_running,
             commands::kkafio::kkafio_trash,
             commands::kkafio::kkafio_run_game,
+            commands::kkafio::kkafio_organize_library,
             commands::kkafio::kkafio_run_studio,
             // File operation commands
             commands::file_ops::read_local_file,
