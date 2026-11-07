@@ -1245,6 +1245,8 @@ export const useAppStore = create<AppState>()(
         ),
         connectionPanelExpanded:
           localLayout?.connectionPanelExpanded ?? config.settings.connectionPanelExpanded ?? true,
+        gameSettingsExpanded:
+          localLayout?.gameSettingsExpanded ?? config.settings.gameSettingsExpanded ?? true,
         welcomeShownHash: config.settings.welcomeShownHash ?? '',
         devMode: config.settings.devMode ?? false,
         tcpCompatMode: config.settings.tcpCompatMode ?? false,
@@ -1613,6 +1615,11 @@ export const useAppStore = create<AppState>()(
     setConnectionPanelExpanded: (expanded) => {
       set({ connectionPanelExpanded: expanded });
       if (!isTauri()) patchWebUILayout({ connectionPanelExpanded: expanded });
+    },
+    gameSettingsExpanded: true,
+    setGameSettingsExpanded: (expanded) => {
+      set({ gameSettingsExpanded: expanded });
+      if (!isTauri()) patchWebUILayout({ gameSettingsExpanded: expanded });
     },
 
     // 窗口大小
@@ -2030,6 +2037,7 @@ function generateConfig(): MxuConfig {
           rightPanelCollapsed: bl?.rightPanelCollapsed ?? state.rightPanelCollapsed,
           addTaskPanelHeight: bl?.addTaskPanelHeight ?? state.addTaskPanelHeight,
           connectionPanelExpanded: bl?.connectionPanelExpanded ?? state.connectionPanelExpanded,
+          gameSettingsExpanded: bl?.gameSettingsExpanded ?? state.gameSettingsExpanded,
           mirrorChyan: {
             ...state.mirrorChyanSettings,
             cdk: '',
@@ -2099,6 +2107,7 @@ useAppStore.subscribe(
       rightPanelCollapsed: state.rightPanelCollapsed,
       addTaskPanelHeight: state.addTaskPanelHeight,
       connectionPanelExpanded: state.connectionPanelExpanded,
+      gameSettingsExpanded: state.gameSettingsExpanded,
     }),
     confirmBeforeDelete: state.confirmBeforeDelete,
     maxLogsPerInstance: state.maxLogsPerInstance,

@@ -63,11 +63,17 @@ interface GlobalOptionPanelProps { instanceId: string; }
 
 export function GlobalOptionPanel({ instanceId }: GlobalOptionPanelProps) {
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState(false);
   // Path text being edited; committed on blur so a half-typed (or emptied) path
   // doesn't flip the card into the inherited state mid-edit.
   const [draft, setDraft] = useState<string | null>(null);
-  const { instances, setGlobalOptionValue, clearGlobalOptionValues } = useAppStore();
+  const {
+    instances,
+    setGlobalOptionValue,
+    clearGlobalOptionValues,
+    gameSettingsExpanded,
+    setGameSettingsExpanded,
+  } = useAppStore();
+  const collapsed = !gameSettingsExpanded; // persisted across restarts
 
   const instance = instances.find(i => i.id === instanceId);
   if (!instance) return null;
@@ -172,7 +178,7 @@ export function GlobalOptionPanel({ instanceId }: GlobalOptionPanelProps) {
   return (
     <div className="rounded-lg border border-accent/30 bg-bg-secondary shadow-sm overflow-visible">
       {/* Header */}
-      <button type="button" onClick={() => setCollapsed(c => !c)}
+      <button type="button" onClick={() => setGameSettingsExpanded(!gameSettingsExpanded)}
         className="w-full flex items-center gap-2 px-3 py-2 bg-accent/5 border-b border-accent/20 hover:bg-accent/10 transition-colors rounded-t-lg"
         aria-expanded={!collapsed}>
         <Settings2 className="w-3.5 h-3.5 text-accent flex-shrink-0" />

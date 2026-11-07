@@ -972,6 +972,7 @@ function App() {
           rightPanelCollapsed: localLayout.rightPanelCollapsed,
           addTaskPanelHeight: localLayout.addTaskPanelHeight,
           connectionPanelExpanded: localLayout.connectionPanelExpanded,
+          gameSettingsExpanded: localLayout.gameSettingsExpanded,
           showOptionPreview: localLayout.showOptionPreview,
           ...(localLayout.windowSize && { windowSize: localLayout.windowSize }),
           ...(localLayout.windowPosition && { windowPosition: localLayout.windowPosition }),

@@ -318,6 +318,8 @@ export interface AppState {
   // 卡片展开状态
   connectionPanelExpanded: boolean;
   setConnectionPanelExpanded: (expanded: boolean) => void;
+  gameSettingsExpanded: boolean;
+  setGameSettingsExpanded: (expanded: boolean) => void;
 
   // 窗口大小
   windowSize: WindowSize;

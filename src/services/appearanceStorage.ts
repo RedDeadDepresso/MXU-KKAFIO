@@ -68,6 +68,7 @@ export interface WebUILayout {
   rightPanelCollapsed: boolean;
   addTaskPanelHeight: number;
   connectionPanelExpanded: boolean;
+  gameSettingsExpanded: boolean;
   showOptionPreview: boolean;
 }
 
@@ -76,6 +77,7 @@ const defaultLayout: WebUILayout = {
   rightPanelCollapsed: false,
   addTaskPanelHeight: 192,
   connectionPanelExpanded: true,
+  gameSettingsExpanded: true,
   showOptionPreview: true,
 };
 
@@ -143,6 +145,7 @@ export function cacheBackendLayout(settings: {
   rightPanelCollapsed?: boolean;
   addTaskPanelHeight?: number;
   connectionPanelExpanded?: boolean;
+  gameSettingsExpanded?: boolean;
   showOptionPreview?: boolean;
 }): void {
   _backendLayout = { ...settings } as Partial<WebUILayout>;

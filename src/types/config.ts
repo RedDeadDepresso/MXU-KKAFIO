@@ -140,6 +140,7 @@ export interface AppSettings {
   proxy?: ProxySettings; // 代理设置
   showOptionPreview?: boolean; // 是否在任务列表显示选项预览
   connectionPanelExpanded?: boolean; // 连接设置卡片是否展开
+  gameSettingsExpanded?: boolean; // 游戏设置卡片是否展开
   welcomeShownHash?: string; // 已显示过的 welcome 内容 hash，用于判断内容变化时重新弹窗
   rightPanelWidth?: number; // 右侧面板宽度
   rightPanelCollapsed?: boolean; // 右侧面板是否折叠
