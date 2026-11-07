@@ -403,28 +403,6 @@ export default {
     needResource: 'Please load resources first',
   },
 
-  // Screenshot preview
-  screenshot: {
-    title: 'Live Screenshot',
-    autoRefresh: 'Auto Refresh',
-    noScreenshot: 'No screenshot',
-    startStream: 'Start Live Stream',
-    stopStream: 'Stop Live Stream',
-    connectFirst: 'Please connect a device first',
-    fullscreen: 'Fullscreen',
-    exitFullscreen: 'Exit Fullscreen',
-    clickHint: 'Click on the image to send a tap to the device',
-    // Frame rate settings
-    frameRate: {
-      title: 'Screenshot Frame Rate',
-      hint: 'Only affects preview smoothness and system resource usage, does not impact task recognition or execution',
-      unlimited: 'Unlimited',
-      fps5: '5 FPS',
-      fps1: '1 FPS',
-      every5s: 'Every 5s',
-      every30s: 'Every 30s',
-    },
-  },
 
   // Logs
   logs: {
@@ -764,15 +742,6 @@ export default {
     deselectAll: 'Deselect All',
     expandAllTasks: 'Expand All',
     collapseAllTasks: 'Collapse All',
-
-    // Screenshot panel context menu
-    reconnect: 'Reconnect',
-    forceRefresh: 'Force Refresh',
-    startStream: 'Start Live Stream',
-    stopStream: 'Stop Live Stream',
-    fullscreen: 'Fullscreen',
-    saveScreenshot: 'Save Screenshot',
-    copyScreenshot: 'Copy Screenshot',
 
     // Connection panel context menu
     refreshDevices: 'Refresh Device List',

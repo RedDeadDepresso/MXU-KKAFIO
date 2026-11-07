@@ -18,7 +18,6 @@ import { defaultAddTaskPanelHeight, defaultWindowSize } from '@/types/config';
 import { isTauri } from '@/utils/paths';
 import { SwitchButton } from '@/components/FormControls';
 import { DesktopOnlyWrapper } from '@/components/ui/DesktopOnlyWrapper';
-import { FrameRateSelector } from '../FrameRateSelector';
 
 export function GeneralSection() {
   const { t } = useTranslation();
@@ -303,9 +302,6 @@ export function GeneralSection() {
           <SwitchButton value={showOptionPreview} onChange={(v) => setShowOptionPreview(v)} />
         </div>
       </div>
-
-      {/* ⑥ 帧率选择器 */}
-      <FrameRateSelector />
 
       {/* ⑦ 删除确认 */}
       <div className="bg-bg-secondary rounded-xl p-4 border border-border">

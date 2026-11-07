@@ -7,7 +7,7 @@
 
 import type { AccentColor, CustomAccent } from '@/themes/types';
 import type { Theme, Language } from '@/stores/types';
-import type { WindowSize, WindowPosition, ScreenshotFrameRate } from '@/types/config';
+import type { WindowSize, WindowPosition } from '@/types/config';
 import { loggers } from '@/utils/logger';
 
 const log = loggers.config;
@@ -69,9 +69,7 @@ export interface WebUILayout {
   rightPanelCollapsed: boolean;
   addTaskPanelHeight: number;
   connectionPanelExpanded: boolean;
-  screenshotPanelExpanded: boolean;
   showOptionPreview: boolean;
-  screenshotFrameRate: ScreenshotFrameRate;
 }
 
 const defaultLayout: WebUILayout = {
@@ -80,9 +78,7 @@ const defaultLayout: WebUILayout = {
   rightPanelCollapsed: false,
   addTaskPanelHeight: 192,
   connectionPanelExpanded: true,
-  screenshotPanelExpanded: true,
   showOptionPreview: true,
-  screenshotFrameRate: '1',
 };
 
 export function loadWebUILayout(): WebUILayout | null {
@@ -150,9 +146,7 @@ export function cacheBackendLayout(settings: {
   rightPanelCollapsed?: boolean;
   addTaskPanelHeight?: number;
   connectionPanelExpanded?: boolean;
-  screenshotPanelExpanded?: boolean;
   showOptionPreview?: boolean;
-  screenshotFrameRate?: ScreenshotFrameRate;
 }): void {
   _backendLayout = { ...settings } as Partial<WebUILayout>;
 }

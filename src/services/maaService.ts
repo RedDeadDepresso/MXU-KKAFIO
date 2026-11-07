@@ -15,33 +15,10 @@ import type {
 } from '@/types/maa';
 import { loggers } from '@/utils/logger';
 import { isTauri } from '@/utils/paths';
-import { apiDelete, apiGet, apiPost, apiPut, getApiBase } from '@/utils/backendApi';
+import { apiDelete, apiGet, apiPost, apiPut } from '@/utils/backendApi';
 import * as wsService from '@/services/wsService';
 
 const log = loggers.maa;
-
-/**
- * 从后端获取最新缓存截图，转换为 base64 data URL（浏览器专用）
- *
- * 后端截图循环（ScreenshotService）负责驱动 post_screencap，此处仅读取缓存。
- */
-async function fetchScreenshotDataUrl(instanceId: string): Promise<string> {
-  const resp = await fetch(`${getApiBase()}/maa/instances/${instanceId}/screenshot`);
-  if (!resp.ok) return '';
-  const ct = resp.headers.get('content-type') ?? '';
-  if (ct.includes('image/')) {
-    const blob = await resp.blob();
-    return new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => resolve('');
-      reader.readAsDataURL(blob);
-    });
-  }
-  // fallback: JSON { dataUrl: string }
-  const json = (await resp.json()) as { dataUrl?: string };
-  return json.dataUrl ?? '';
-}
 
 async function syncMaaVersionToStore(version: string): Promise<void> {
   try {
@@ -509,74 +486,6 @@ export const maaService = {
   },
 
   /**
-   * 发起截图请求（异步，通过回调通知完成状态）
-   * @param instanceId 实例 ID
-   * @returns 截图请求 ID（Tauri）或 0（浏览器，实际截图异步进行并写入缓存）
-   */
-  async postScreencap(instanceId: string): Promise<number> {
-    if (!isTauri()) {
-      // 浏览器模式：截图由后端 ScreenshotService 统一驱动，此处无需额外触发
-      return 0;
-    }
-    const screencapId = await invoke<number>('maa_post_screencap', { instanceId });
-    return screencapId;
-  },
-
-  /**
-   * 获取缓存的截图
-   * @param instanceId 实例 ID
-   * @returns base64 编码的图像 data URL
-   */
-  async getCachedImage(instanceId: string): Promise<string> {
-    if (!isTauri()) {
-      // 浏览器模式：后端截图循环已在运行，直接读取最新缓存
-      return fetchScreenshotDataUrl(instanceId).catch(() => '');
-    }
-    return await invoke<string>('maa_get_cached_image', { instanceId });
-  },
-
-  /**
-   * 订阅实例的实时截图（后端统一驱动截图循环）
-   *
-   * 多个客户端可同时订阅同一实例，后端按最快订阅者的帧率驱动唯一截图循环。
-   * 订阅后应调用 getCachedImage 获取截图，无需手动调用 postScreencap。
-   *
-   * @param instanceId 实例 ID
-   * @param subscriberId 订阅者唯一标识（同一 ID 重复调用会更新 intervalMs）
-   * @param intervalMs 期望的截图间隔（毫秒）
-   */
-  async screenshotSubscribe(
-    instanceId: string,
-    subscriberId: string,
-    intervalMs: number,
-  ): Promise<void> {
-    if (!isTauri()) {
-      await apiPost(`/maa/instances/${instanceId}/screenshot/subscribe`, {
-        subscriber_id: subscriberId,
-        interval_ms: intervalMs,
-      });
-      return;
-    }
-    await invoke('maa_screenshot_subscribe', { instanceId, subscriberId, intervalMs });
-  },
-
-  /**
-   * 取消实例的实时截图订阅
-   *
-   * @param instanceId 实例 ID
-   * @param subscriberId 订阅时使用的唯一标识
-   */
-  async screenshotUnsubscribe(instanceId: string, subscriberId: string): Promise<void> {
-    if (!isTauri()) {
-      await apiPost(`/maa/instances/${instanceId}/screenshot/unsubscribe`, {
-        subscriber_id: subscriberId,
-      });
-      return;
-    }
-    await invoke('maa_screenshot_unsubscribe', { instanceId, subscriberId });
-  },
-
-  /**
    * 启动任务（支持 Agent）
    * @param instanceId 实例 ID
    * @param tasks 任务列表
@@ -700,56 +609,6 @@ export const maaService = {
 
     return await listen<SelfStopRequestedEvent>('mxu-self-stop-requested', (event) => {
       void callback(event.payload);
-    });
-  },
-
-  /**
-   * 等待单个操作完成的一次性回调（适用于截图等需要立即获取结果的场景）
-   * 注意：此函数会阻塞调用者直到回调到达，适合在非 UI 线程或循环中使用
-   * @param idField 要匹配的 ID 字段名（ctrl_id）
-   * @param id 要等待的 ID 值
-   * @param timeout 超时时间（毫秒），默认 10000
-   * @returns 是否成功
-   */
-  async waitForScreencap(id: number, timeout: number = 10000): Promise<boolean> {
-    if (!isTauri()) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return true;
-    }
-
-    let resolved = false;
-    const unlisten = await this.onCallback((message, details) => {
-      if (details.ctrl_id !== id) return;
-
-      if (message === 'Controller.Action.Succeeded') {
-        if (!resolved) {
-          resolved = true;
-          settle(true);
-        }
-      } else if (message === 'Controller.Action.Failed') {
-        if (!resolved) {
-          resolved = true;
-          settle(false);
-        }
-      }
-    });
-
-    let settle!: (value: boolean) => void;
-    const promise = new Promise<boolean>((resolve) => {
-      settle = resolve;
-    });
-
-    const timeoutId = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        log.warn(`截图等待超时, ctrl_id=${id}`);
-        settle(false);
-      }
-    }, timeout);
-
-    return promise.finally(() => {
-      clearTimeout(timeoutId);
-      unlisten();
     });
   },
 

@@ -404,28 +404,6 @@ export default {
     needResource: '先にリソースを読み込んでください',
   },
 
-  // スクリーンショットプレビュー
-  screenshot: {
-    title: 'リアルタイムスクリーンショット',
-    autoRefresh: '自動更新',
-    noScreenshot: 'スクリーンショットがありません',
-    startStream: 'ライブストリームを開始',
-    stopStream: 'ライブストリームを停止',
-    connectFirst: '先にデバイスを接続してください',
-    fullscreen: '全画面表示',
-    exitFullscreen: '全画面を終了',
-    clickHint: '画面をクリックするとデバイスにタップを送信します',
-    // フレームレート設定
-    frameRate: {
-      title: 'スクリーンショットのフレームレート',
-      hint: 'プレビューの滑らかさとシステムリソース使用量にのみ影響し、タスクの認識や実行には影響しません',
-      unlimited: '制限なし',
-      fps5: '5 FPS',
-      fps1: '1 FPS',
-      every5s: '5秒ごと',
-      every30s: '30秒ごと',
-    },
-  },
 
   // ログ
   logs: {
@@ -767,15 +745,6 @@ export default {
     deselectAll: 'すべて解除',
     expandAllTasks: 'すべて展開',
     collapseAllTasks: 'すべて折りたたむ',
-
-    // スクリーンショットパネルのコンテキストメニュー
-    reconnect: '再接続',
-    forceRefresh: '強制更新',
-    startStream: 'ライブストリームを開始',
-    stopStream: 'ライブストリームを停止',
-    fullscreen: '全画面表示',
-    saveScreenshot: 'スクリーンショットを保存',
-    copyScreenshot: 'スクリーンショットをコピー',
 
     // 接続パネルのコンテキストメニュー
     refreshDevices: 'デバイス一覧を更新',

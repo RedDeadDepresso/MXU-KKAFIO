@@ -394,28 +394,6 @@ export default {
     needResource: '請先載入資源',
   },
 
-  // 截圖預覽
-  screenshot: {
-    title: '即時截圖',
-    autoRefresh: '自動重新整理',
-    noScreenshot: '暫無截圖',
-    startStream: '開始即時流',
-    stopStream: '停止即時流',
-    connectFirst: '請先連接裝置',
-    fullscreen: '全螢幕顯示',
-    exitFullscreen: '退出全螢幕',
-    clickHint: '點擊畫面可向裝置發送點擊',
-    // 幀率設定
-    frameRate: {
-      title: '即時截圖幀率',
-      hint: '僅影响畫面預覽流暢度與系統資源佔用，不影响任務識別與執行',
-      unlimited: '不限',
-      fps5: '每秒 5 幀',
-      fps1: '每秒 1 幀',
-      every5s: '5 秒一幀',
-      every30s: '30 秒一幀',
-    },
-  },
 
   // 日誌/資訊流
   logs: {
@@ -748,15 +726,6 @@ export default {
     deselectAll: '取消全選',
     expandAllTasks: '展開全部',
     collapseAllTasks: '摺疊全部',
-
-    // 截圖面板右鍵選單
-    reconnect: '重新連接',
-    forceRefresh: '強制重新整理',
-    startStream: '開始即時流',
-    stopStream: '停止即時流',
-    fullscreen: '全螢幕顯示',
-    saveScreenshot: '儲存截圖',
-    copyScreenshot: '複製截圖',
 
     // 連接面板右鍵選單
     refreshDevices: '重新整理裝置列表',

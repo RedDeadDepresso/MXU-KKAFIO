@@ -37,4 +37,3 @@ export {
   formatSize,
   formatSpeed,
 } from './UpdateInfoCard';
-export { FrameRateSelector, getFrameInterval } from './FrameRateSelector';

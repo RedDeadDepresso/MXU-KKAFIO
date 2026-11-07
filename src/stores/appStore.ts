@@ -16,7 +16,6 @@ import {
   defaultAddTaskPanelHeight,
   defaultMirrorChyanSettings,
   normalizeAddTaskPanelHeight,
-  defaultScreenshotFrameRate,
   defaultWindowSize,
 } from '@/types/config';
 import type {
@@ -1234,12 +1233,6 @@ export const useAppStore = create<AppState>()(
         ),
         connectionPanelExpanded:
           localLayout?.connectionPanelExpanded ?? config.settings.connectionPanelExpanded ?? true,
-        screenshotPanelExpanded:
-          localLayout?.screenshotPanelExpanded ?? config.settings.screenshotPanelExpanded ?? true,
-        screenshotFrameRate:
-          localLayout?.screenshotFrameRate ??
-          config.settings.screenshotFrameRate ??
-          defaultScreenshotFrameRate,
         welcomeShownHash: config.settings.welcomeShownHash ?? '',
         devMode: config.settings.devMode ?? false,
         tcpCompatMode: config.settings.tcpCompatMode ?? false,
@@ -1583,16 +1576,6 @@ export const useAppStore = create<AppState>()(
         };
       }),
 
-    // 截图流状态
-    instanceScreenshotStreaming: {},
-    setInstanceScreenshotStreaming: (instanceId, streaming) =>
-      set((state) => ({
-        instanceScreenshotStreaming: {
-          ...state.instanceScreenshotStreaming,
-          [instanceId]: streaming,
-        },
-      })),
-
     // 右侧面板折叠状态
     sidePanelExpanded: true,
     setSidePanelExpanded: (expanded) => {
@@ -1626,17 +1609,10 @@ export const useAppStore = create<AppState>()(
 
     // 卡片展开状态
     connectionPanelExpanded: true,
-    screenshotPanelExpanded: true,
     setConnectionPanelExpanded: (expanded) => {
       set({ connectionPanelExpanded: expanded });
       if (!isTauri()) patchWebUILayout({ connectionPanelExpanded: expanded });
     },
-    setScreenshotPanelExpanded: (expanded) => {
-      set({ screenshotPanelExpanded: expanded });
-      if (!isTauri()) patchWebUILayout({ screenshotPanelExpanded: expanded });
-    },
-
-    // 中控台视图模式
 
     // 窗口大小
     windowSize: defaultWindowSize,
@@ -1672,13 +1648,6 @@ export const useAppStore = create<AppState>()(
     setShowOptionPreview: (show) => {
       set({ showOptionPreview: show });
       if (!isTauri()) patchWebUILayout({ showOptionPreview: show });
-    },
-
-    // 实时截图帧率设置
-    screenshotFrameRate: defaultScreenshotFrameRate,
-    setScreenshotFrameRate: (rate) => {
-      set({ screenshotFrameRate: rate });
-      if (!isTauri()) patchWebUILayout({ screenshotFrameRate: rate });
     },
 
     // Welcome 弹窗显示记录
@@ -2061,8 +2030,6 @@ function generateConfig(): MxuConfig {
           rightPanelCollapsed: bl?.rightPanelCollapsed ?? state.rightPanelCollapsed,
           addTaskPanelHeight: bl?.addTaskPanelHeight ?? state.addTaskPanelHeight,
           connectionPanelExpanded: bl?.connectionPanelExpanded ?? state.connectionPanelExpanded,
-          screenshotPanelExpanded: bl?.screenshotPanelExpanded ?? state.screenshotPanelExpanded,
-          screenshotFrameRate: bl?.screenshotFrameRate ?? state.screenshotFrameRate,
           mirrorChyan: {
             ...state.mirrorChyanSettings,
             cdk: '',
@@ -2133,8 +2100,6 @@ useAppStore.subscribe(
       rightPanelCollapsed: state.rightPanelCollapsed,
       addTaskPanelHeight: state.addTaskPanelHeight,
       connectionPanelExpanded: state.connectionPanelExpanded,
-      screenshotPanelExpanded: state.screenshotPanelExpanded,
-      screenshotFrameRate: state.screenshotFrameRate,
     }),
     confirmBeforeDelete: state.confirmBeforeDelete,
     maxLogsPerInstance: state.maxLogsPerInstance,

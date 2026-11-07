@@ -401,28 +401,6 @@ export default {
     needResource: '먼저 리소스를 로드하세요',
   },
 
-  // 스크린샷 미리보기
-  screenshot: {
-    title: '실시간 스크린샷',
-    autoRefresh: '자동 새로고침',
-    noScreenshot: '스크린샷이 없습니다',
-    startStream: '라이브 스트림 시작',
-    stopStream: '라이브 스트림 중지',
-    connectFirst: '먼저 기기를 연결하세요',
-    fullscreen: '전체 화면',
-    exitFullscreen: '전체 화면 종료',
-    clickHint: '화면을 클릭하면 기기에 탭을 전송합니다',
-    // 프레임률 설정
-    frameRate: {
-      title: '스크린샷 프레임률',
-      hint: '미리보기 부드러움과 시스템 리소스 사용량에만 영향을 미치며, 작업 인식이나 실행에는 영향을 주지 않습니다',
-      unlimited: '제한 없음',
-      fps5: '5 FPS',
-      fps1: '1 FPS',
-      every5s: '5초마다',
-      every30s: '30초마다',
-    },
-  },
 
   // 로그
   logs: {
@@ -761,15 +739,6 @@ export default {
     deselectAll: '모두 선택 해제',
     expandAllTasks: '모두 펼치기',
     collapseAllTasks: '모두 접기',
-
-    // 스크린샷 패널 컨텍스트 메뉴
-    reconnect: '다시 연결',
-    forceRefresh: '강제 새로고침',
-    startStream: '라이브 스트림 시작',
-    stopStream: '라이브 스트림 중지',
-    fullscreen: '전체 화면',
-    saveScreenshot: '스크린샷 저장',
-    copyScreenshot: '스크린샷 복사',
 
     // 연결 패널 컨텍스트 메뉴
     refreshDevices: '기기 목록 새로고침',

@@ -13,7 +13,6 @@ import type {
   MirrorChyanSettings,
   ProxySettings,
   RecentlyClosedInstance,
-  ScreenshotFrameRate,
   HotkeySettings,
 } from '@/types/config';
 import type { ConnectionStatus, TaskStatus, AdbDevice, Win32Window } from '@/types/maa';
@@ -305,10 +304,6 @@ export interface AppState {
     options?: { skipRunningState?: boolean },
   ) => void;
 
-  // 截图流状态
-  instanceScreenshotStreaming: Record<string, boolean>;
-  setInstanceScreenshotStreaming: (instanceId: string, streaming: boolean) => void;
-
   // 右侧面板折叠状态
   sidePanelExpanded: boolean;
   setSidePanelExpanded: (expanded: boolean) => void;
@@ -326,11 +321,7 @@ export interface AppState {
 
   // 卡片展开状态
   connectionPanelExpanded: boolean;
-  screenshotPanelExpanded: boolean;
   setConnectionPanelExpanded: (expanded: boolean) => void;
-  setScreenshotPanelExpanded: (expanded: boolean) => void;
-
-  // 中控台视图模式
 
   // 窗口大小
   windowSize: WindowSize;
@@ -356,10 +347,6 @@ export interface AppState {
   // 任务选项预览显示设置
   showOptionPreview: boolean;
   setShowOptionPreview: (show: boolean) => void;
-
-  // 实时截图帧率设置
-  screenshotFrameRate: ScreenshotFrameRate;
-  setScreenshotFrameRate: (rate: ScreenshotFrameRate) => void;
 
   // Welcome 弹窗显示记录
   welcomeShownHash: string;
