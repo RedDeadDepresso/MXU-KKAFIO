@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Info, Mail, FileText, Loader2 } from 'lucide-react';
+import { Info, Mail, FileText, Loader2, Github, BookOpen } from 'lucide-react';
 import clsx from 'clsx';
 
 import { useAppStore } from '@/stores/appStore';
 import { getInterfaceLangKey } from '@/i18n';
+import { isHttpUrl, openExternalUrl } from '@/utils/paths';
 import {
   resolveContent,
   loadIconAsDataUrl,
@@ -37,6 +38,13 @@ export function AboutSection() {
   const projectName =
     resolveI18nText(projectInterface?.label, translations) || projectInterface?.name || 'MXU';
   //   const version = projectInterface?.version || '0.1.0';
+
+  // 外部链接：GitHub 与文档（仅接受 http/https）
+  const githubUrl = isHttpUrl(projectInterface?.github)
+    ? projectInterface.github.trim()
+    : undefined;
+  const documentationText = resolveI18nText(projectInterface?.documentation, translations);
+  const documentationUrl = isHttpUrl(documentationText) ? documentationText.trim() : undefined;
 
   // 解析内容（支持文件路径、URL、国际化）
   useEffect(() => {
@@ -108,6 +116,34 @@ export function AboutSection() {
             {t('about.version')}: {version}
           </p> */}
         </div>
+
+        {/* 外部链接按钮 */}
+        {(githubUrl || documentationUrl) && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+            {githubUrl && (
+              <button
+                type="button"
+                onClick={() => openExternalUrl(githubUrl)}
+                title={githubUrl}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-bg-tertiary border border-border text-sm text-text-primary hover:bg-bg-hover transition-colors"
+              >
+                <Github className="w-4 h-4" />
+                GitHub
+              </button>
+            )}
+            {documentationUrl && (
+              <button
+                type="button"
+                onClick={() => openExternalUrl(documentationUrl)}
+                title={documentationUrl}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-bg-tertiary border border-border text-sm text-text-primary hover:bg-bg-hover transition-colors"
+              >
+                <BookOpen className="w-4 h-4" />
+                {t('about.documentation')}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 内容加载中 */}
         {isLoading ? (

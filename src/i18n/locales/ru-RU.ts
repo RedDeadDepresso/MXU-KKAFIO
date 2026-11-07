@@ -473,6 +473,7 @@ export default {
     license: 'Лицензия',
     contact: 'Контакты',
     github: 'Репозиторий GitHub',
+    documentation: 'Документация',
   },
 
   // Отладка

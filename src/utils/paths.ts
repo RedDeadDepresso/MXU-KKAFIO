@@ -98,3 +98,24 @@ export async function openDirectory(dirPath: string): Promise<void> {
   const { openPath } = await import('@tauri-apps/plugin-opener');
   await openPath(dirPath);
 }
+
+/**
+ * 是否为 http(s) 链接（interface.json 内容不可信，仅允许打开网页链接）
+ */
+export function isHttpUrl(url: string | undefined): url is string {
+  return !!url && /^https?:\/\//i.test(url.trim());
+}
+
+/**
+ * 在系统默认浏览器中打开链接（Tauri 使用 opener 插件，浏览器模式使用 window.open）
+ */
+export async function openExternalUrl(url: string): Promise<void> {
+  if (!isHttpUrl(url)) return;
+  const target = url.trim();
+  if (isTauri()) {
+    const { openUrl } = await import('@tauri-apps/plugin-opener');
+    await openUrl(target);
+  } else {
+    window.open(target, '_blank', 'noopener,noreferrer');
+  }
+}

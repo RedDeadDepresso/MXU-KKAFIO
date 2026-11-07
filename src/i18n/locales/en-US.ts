@@ -470,6 +470,7 @@ export default {
     license: 'License',
     contact: 'Contact',
     github: 'GitHub Repository',
+    documentation: 'Documentation',
   },
 
   // Debug

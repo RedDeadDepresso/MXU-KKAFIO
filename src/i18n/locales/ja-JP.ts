@@ -470,6 +470,7 @@ export default {
     license: 'ライセンス',
     contact: 'お問い合わせ',
     github: 'GitHub リポジトリ',
+    documentation: 'ドキュメント',
   },
 
   // デバッグ

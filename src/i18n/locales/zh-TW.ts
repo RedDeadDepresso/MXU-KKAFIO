@@ -460,6 +460,7 @@ export default {
     license: '授權',
     contact: '聯絡方式',
     github: 'GitHub 儲存庫',
+    documentation: '文件',
   },
 
   // 除錯

@@ -459,6 +459,7 @@ export default {
     license: '许可证',
     contact: '联系方式',
     github: 'GitHub 仓库',
+    documentation: '文档',
   },
 
   // 调试

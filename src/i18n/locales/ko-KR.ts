@@ -467,6 +467,7 @@ export default {
     license: '라이선스',
     contact: '연락처',
     github: 'GitHub 저장소',
+    documentation: '문서',
   },
 
   // 디버그

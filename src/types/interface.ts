@@ -10,6 +10,8 @@ export interface ProjectInterface {
   mirrorchyan_rid?: string;
   mirrorchyan_multiplatform?: boolean;
   github?: string;
+  /** 文档链接（http/https URL，可选；支持 `$` 开头的国际化 key，以便按语言提供不同链接） */
+  documentation?: string;
   version?: string;
   contact?: string;
   license?: string;
