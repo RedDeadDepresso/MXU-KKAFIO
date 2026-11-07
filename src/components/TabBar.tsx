@@ -22,11 +22,14 @@ import {
   Share2,
   MousePointerClick,
   MousePointerBan,
+  Github,
+  BookOpen,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/appStore';
 import { ContextMenu, useContextMenu, type MenuItem } from './ContextMenu';
 import { ConfirmDialog } from './ConfirmDialog';
 import { getInterfaceLangKey } from '@/i18n';
+import { isHttpUrl, openExternalUrl } from '@/utils/paths';
 import { exportWithToast } from '@/utils/tabExportImport';
 import clsx from 'clsx';
 
@@ -158,6 +161,13 @@ export function TabBar() {
   };
 
   const langKey = getInterfaceLangKey(language);
+
+  // 项目链接（仅接受 http/https）
+  const githubUrl = isHttpUrl(projectInterface?.github)
+    ? projectInterface.github.trim()
+    : undefined;
+  const documentationText = resolveI18nText(projectInterface?.documentation, langKey);
+  const documentationUrl = isHttpUrl(documentationText) ? documentationText.trim() : undefined;
 
   // 右键菜单处理
   const handleTabContextMenu = useCallback(
@@ -499,8 +509,28 @@ export function TabBar() {
       </div>
 
       {/* 项目名称（根据协议，label 是 UI 显示名称，title 是窗口标题；移动端隐藏节省空间） */}
-      <div className="hidden md:block px-4 text-sm font-medium text-text-secondary">
-        {resolveI18nText(projectInterface?.label, langKey) || projectInterface?.name || 'MXU'}
+      <div className="hidden md:flex items-center gap-1 pl-4 pr-2">
+        <span className="text-sm font-medium text-text-secondary">
+          {resolveI18nText(projectInterface?.label, langKey) || projectInterface?.name || 'MXU'}
+        </span>
+        {githubUrl && (
+          <button
+            onClick={() => openExternalUrl(githubUrl)}
+            className="p-1.5 rounded-md hover:bg-bg-hover text-text-secondary transition-colors"
+            title={`GitHub: ${githubUrl}`}
+          >
+            <Github className="w-4 h-4" />
+          </button>
+        )}
+        {documentationUrl && (
+          <button
+            onClick={() => openExternalUrl(documentationUrl)}
+            className="p-1.5 rounded-md hover:bg-bg-hover text-text-secondary transition-colors"
+            title={`${t('about.documentation')}: ${documentationUrl}`}
+          >
+            <BookOpen className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* 工具按钮 */}
