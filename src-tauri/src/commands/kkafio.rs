@@ -656,9 +656,15 @@ pub fn kkafio_run_game(game_path: String, game_type: Option<String>) -> RunGameR
 // Organize Library command
 // ============================================================================
 
-/// Run `kkafio_cli organize-library --game-folders` as a separate, detached
-/// process (like Run Game): it is not tracked in `KkafioState`, so it doesn't
-/// interfere with the main run process and survives MXU exiting.
+/// Run `kkafio_cli organize-library --game-folders` as a separate process (like
+/// Run Game): it is not tracked in `KkafioState`, so it doesn't interfere with
+/// the main run process and survives MXU exiting.
+///
+/// On Windows it gets its own visible console window so the CLI's logs are
+/// shown next to the customtkinter dialog. The window closes when the CLI
+/// exits successfully and stays open (`pause`) when it exits with an error, so
+/// the message can be read. MXU's own std handles are never inherited — MXU is
+/// a GUI-subsystem app and has no valid ones.
 ///
 /// `cwd` must be the directory that contains `kkafio_cli.exe` (or
 /// `kkafio_cli.py`). `instance_index` is passed as the global `--instance N`
@@ -683,31 +689,93 @@ pub fn kkafio_organize_library(cwd: String, instance_index: Option<usize>) -> Ru
     log::info!("[kkafio] organize library: {} {:?} in {}", program, args, cwd);
 
     #[cfg(windows)]
-    let mut cmd = {
+    {
         use std::os::windows::process::CommandExt;
-        // DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP so it survives MXU exit
-        const DETACHED_PROCESS: u32 = 0x0000_0008;
-        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
-        let mut c = Command::new(&program);
-        c.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
-        c
-    };
+        // Hides the intermediate `cmd /c start` window; `start` itself opens
+        // the new visible console for the batch file.
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+        // Quote for a batch file (inside quotes only `%` needs escaping).
+        fn q(s: &str) -> String {
+            format!("\"{}\"", s.replace('%', "%%"))
+        }
+
+        let mut cli_line = q(&program);
+        for a in &args {
+            cli_line.push(' ');
+            cli_line.push_str(&q(a));
+        }
+
+        // A small throw-away batch file keeps the quoting and the
+        // "pause only on failure" logic out of cmd's command-line parsing.
+        let script = format!(
+            "@echo off\r\n\
+             chcp 65001 >nul\r\n\
+             set PYTHONIOENCODING=utf-8\r\n\
+             set PYTHONUTF8=1\r\n\
+             cd /d {cwd}\r\n\
+             {cli_line}\r\n\
+             if errorlevel 1 (\r\n\
+             \x20 echo.\r\n\
+             \x20 echo Organize Library exited with an error.\r\n\
+             \x20 pause\r\n\
+             )\r\n\
+             (goto) 2>nul & del \"%~f0\"\r\n",
+            cwd = q(&cwd),
+            cli_line = cli_line,
+        );
+
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let bat = std::env::temp_dir().join(format!(
+            "kkafio_organize_library_{}_{}.bat",
+            std::process::id(),
+            nanos
+        ));
+        if let Err(e) = std::fs::write(&bat, script) {
+            return RunGameResult {
+                ok: false,
+                exe: program,
+                error: format!("Failed to write launcher script: {}", e),
+            };
+        }
+
+        let result = Command::new("cmd.exe")
+            .args(["/c", "start", "KKAFIO - Organize Library"])
+            .arg(&bat)
+            .creation_flags(CREATE_NO_WINDOW)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
+
+        return match result {
+            Ok(_) => RunGameResult { ok: true, exe: program, error: String::new() },
+            Err(e) => {
+                let _ = std::fs::remove_file(&bat);
+                RunGameResult { ok: false, exe: program, error: e.to_string() }
+            }
+        };
+    }
+
     #[cfg(not(windows))]
-    let mut cmd = Command::new(&program);
+    {
+        let result = Command::new(&program)
+            .args(&args)
+            .current_dir(&cwd)
+            .env("PYTHONIOENCODING", "utf-8")
+            .env("PYTHONUTF8", "1")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
 
-    let result = cmd
-        .args(&args)
-        .current_dir(&cwd)
-        .env("PYTHONIOENCODING", "utf-8")
-        .env("PYTHONUTF8", "1")
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn();
-
-    match result {
-        Ok(_) => RunGameResult { ok: true, exe: program, error: String::new() },
-        Err(e) => RunGameResult { ok: false, exe: program, error: e.to_string() },
+        match result {
+            Ok(_) => RunGameResult { ok: true, exe: program, error: String::new() },
+            Err(e) => RunGameResult { ok: false, exe: program, error: e.to_string() },
+        }
     }
 }
 
