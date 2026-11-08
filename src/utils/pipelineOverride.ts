@@ -12,7 +12,7 @@ import type {
 } from '@/types/interface';
 import { isMxuSpecialTask, getMxuSpecialTask } from '@/types/specialTasks';
 import { loggers } from './logger';
-import { findSwitchCase } from './optionHelpers';
+import { findSwitchCase, resolveOrderedCheckbox } from './optionHelpers';
 import { createDefaultOptionValue } from '@/stores/helpers';
 
 /**
@@ -70,6 +70,15 @@ const collectOptionOverrides = (
     const selectedNames = new Set(optionValue.caseNames);
     for (const caseDef of optionDef.cases) {
       if (selectedNames.has(caseDef.name) && caseDef.pipeline_override) {
+        overrides.push(caseDef.pipeline_override as Record<string, unknown>);
+      }
+    }
+  } else if (optionValue.type === 'ordered_checkbox' && optionDef.type === 'ordered_checkbox') {
+    // MXU 扩展：可排序多选框，按用户排序后的顺序合并所有选中的 case
+    const { checked } = resolveOrderedCheckbox(optionDef, optionValue);
+    for (const name of checked) {
+      const caseDef = optionDef.cases.find((c) => c.name === name);
+      if (caseDef?.pipeline_override) {
         overrides.push(caseDef.pipeline_override as Record<string, unknown>);
       }
     }

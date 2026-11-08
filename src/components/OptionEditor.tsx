@@ -5,9 +5,35 @@ import { loadIconAsDataUrl, useResolvedContent } from '@/services/contentResolve
 import type { OptionValue, CaseItem, InputItem, OptionDefinition } from '@/types/interface';
 import { findMxuOptionByKey } from '@/types/specialTasks';
 import clsx from 'clsx';
-import { Info, AlertCircle, Loader2, FileText, Link, ChevronDown, Check } from 'lucide-react';
+import {
+  Info,
+  AlertCircle,
+  Loader2,
+  FileText,
+  Link,
+  ChevronDown,
+  Check,
+  GripVertical,
+} from 'lucide-react';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { getInterfaceLangKey } from '@/i18n';
-import { findSwitchCase } from '@/utils/optionHelpers';
+import { findSwitchCase, resolveOrderedCheckbox } from '@/utils/optionHelpers';
 import { SwitchButton, TextInput, FileInput, TimeInput } from './FormControls';
 import { Tooltip } from './ui/Tooltip';
 import { toast } from 'sonner';
@@ -41,6 +67,156 @@ function AsyncIcon({
 
   if (!iconUrl) return null;
   return <img src={iconUrl} alt="" className={className} />;
+}
+
+// ============================================================================
+// OrderedCheckboxList — checkbox list whose rows can be reordered by dragging
+// ============================================================================
+
+interface OrderedCaseRowProps {
+  id: string;
+  label: string;
+  checked: boolean;
+  /** 1-based position among the checked items (null when unchecked) */
+  rank: number | null;
+  disabled?: boolean;
+  dragLabel: string;
+  onToggle: () => void;
+}
+
+function OrderedCaseRow({ id, label, checked, rank, disabled, dragLabel, onToggle }: OrderedCaseRowProps) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id, disabled });
+  const style = {
+    // Keep the dragged row on its vertical track
+    transform: CSS.Transform.toString(transform ? { ...transform, x: 0 } : null),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={clsx(
+        'flex items-center gap-2 px-2 py-1.5 rounded border text-xs transition-colors',
+        checked
+          ? 'bg-accent/10 border-accent text-text-primary'
+          : 'bg-bg-primary border-border text-text-secondary',
+        isDragging && 'relative z-10 shadow-md opacity-90',
+        disabled && 'opacity-60',
+      )}
+    >
+      <button
+        ref={setActivatorNodeRef}
+        type="button"
+        disabled={disabled}
+        aria-label={dragLabel}
+        title={dragLabel}
+        className={clsx(
+          'p-0.5 -ml-0.5 rounded touch-none text-text-muted',
+          disabled ? 'cursor-not-allowed' : 'cursor-grab hover:text-text-primary active:cursor-grabbing',
+        )}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </button>
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={onToggle}
+        className={clsx(
+          'flex items-center gap-2 flex-1 min-w-0 text-left',
+          disabled && 'cursor-not-allowed',
+        )}
+      >
+        <span
+          className={clsx(
+            'flex items-center justify-center w-4 h-4 rounded border flex-shrink-0',
+            checked ? 'bg-accent border-accent text-white' : 'border-border',
+          )}
+        >
+          {checked && <Check className="w-3 h-3" />}
+        </span>
+        <span className="truncate" title={label}>
+          {label}
+        </span>
+      </button>
+      {rank !== null && (
+        <span className="text-[10px] tabular-nums text-text-muted flex-shrink-0">{rank}</span>
+      )}
+    </div>
+  );
+}
+
+interface OrderedCheckboxListProps {
+  order: string[];
+  checked: string[];
+  labels: Record<string, string>;
+  disabled?: boolean;
+  dragLabel: string;
+  onChange: (order: string[], checked: string[]) => void;
+}
+
+function OrderedCheckboxList({
+  order,
+  checked,
+  labels,
+  disabled,
+  dragLabel,
+  onChange,
+}: OrderedCheckboxListProps) {
+  // Drag starts only from the grip handle (rows themselves toggle on click)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const checkedSet = new Set(checked);
+
+  const emit = (nextOrder: string[], nextChecked: Set<string>) =>
+    onChange(
+      nextOrder,
+      nextOrder.filter((name) => nextChecked.has(name)),
+    );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const from = order.indexOf(String(active.id));
+    const to = order.indexOf(String(over.id));
+    if (from < 0 || to < 0) return;
+    emit(arrayMove(order, from, to), checkedSet);
+  };
+
+  const toggle = (name: string) => {
+    const next = new Set(checkedSet);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    emit(order, next);
+  };
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={order} strategy={verticalListSortingStrategy}>
+        <div className="flex flex-col gap-1">
+          {order.map((name) => (
+            <OrderedCaseRow
+              key={name}
+              id={name}
+              label={labels[name] ?? name}
+              checked={checkedSet.has(name)}
+              rank={checkedSet.has(name) ? checked.indexOf(name) + 1 : null}
+              disabled={disabled}
+              dragLabel={dragLabel}
+              onToggle={() => toggle(name)}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
+  );
 }
 
 // ============================================================================
@@ -684,6 +860,53 @@ export function OptionEditor({
             );
           })}
         </div>
+      </div>
+    );
+  }
+
+  // Ordered checkbox 类型 (可拖拽排序的多选)
+  if (optionDef.type === 'ordered_checkbox') {
+    const { order, checked } = resolveOrderedCheckbox(optionDef, value);
+    const labels: Record<string, string> = {};
+    for (const caseItem of optionDef.cases) {
+      labels[caseItem.name] = isMxuOption
+        ? t(caseItem.label || caseItem.name)
+        : resolveI18nText(caseItem.label, langKey) || caseItem.name;
+    }
+
+    return (
+      <div
+        className={clsx(
+          'space-y-3',
+          depth > 0 && 'ml-4 pl-3 border-l-2 border-border',
+          isOptionIncompatible && 'opacity-60',
+        )}
+      >
+        <OptionLabelWithIncompatible
+          label={optionLabel}
+          icon={optionDef.icon}
+          basePath={basePath}
+          incompatibleReason={incompatibleReason}
+        />
+        <OptionDescription
+          description={optionDescription}
+          basePath={basePath}
+          translations={translations}
+        />
+        <OrderedCheckboxList
+          order={order}
+          checked={checked}
+          labels={labels}
+          disabled={effectiveDisabled}
+          dragLabel={t('optionEditor.dragToReorder')}
+          onChange={(nextOrder, nextChecked) =>
+            setTaskOptionValue(instanceId, taskId, optionKey, {
+              type: 'ordered_checkbox',
+              order: nextOrder,
+              checked: nextChecked,
+            })
+          }
+        />
       </div>
     );
   }

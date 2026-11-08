@@ -313,6 +313,7 @@ export default {
 
   // 选项编辑器
   optionEditor: {
+    dragToReorder: '拖动以调整顺序',
     loadingDescription: '加载描述中...',
     loadedFromFile: '内容来自本地文件',
     loadedFromUrl: '内容来自网络',

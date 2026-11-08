@@ -320,6 +320,7 @@ export default {
 
   // オプションエディタ
   optionEditor: {
+    dragToReorder: 'ドラッグして並べ替え',
     loadingDescription: '説明を読み込み中...',
     loadedFromFile: 'ローカルファイルから読み込み',
     loadedFromUrl: 'ネットワークから読み込み',

@@ -25,6 +25,7 @@ export type ImportError = 'invalid_format' | 'project_mismatch' | 'unsupported_v
 type WireOptionValue =
   | { t: 's'; c: string } // select:    caseName
   | { t: 'cb'; c: string[] } // checkbox:  caseNames
+  | { t: 'oc'; o: string[]; c: string[] } // ordered_checkbox: order + checked
   | { t: 'sw'; v: boolean } // switch:    value
   | { t: 'in'; v: Record<string, string> } // input:     values
   | { t: 'fo'; v: string } // folder:    path
@@ -65,6 +66,8 @@ function encodeOptionValue(v: OptionValue): WireOptionValue {
       return { t: 's', c: v.caseName };
     case 'checkbox':
       return { t: 'cb', c: v.caseNames };
+    case 'ordered_checkbox':
+      return { t: 'oc', o: v.order, c: v.checked };
     case 'switch':
       return { t: 'sw', v: v.value };
     case 'input':
@@ -125,6 +128,12 @@ function decodeOptionValue(w: WireOptionValue): OptionValue {
       return { type: 'select', caseName: w.c };
     case 'cb':
       return { type: 'checkbox', caseNames: w.c };
+    case 'oc':
+      return {
+        type: 'ordered_checkbox',
+        order: Array.isArray(w.o) ? w.o : [],
+        checked: Array.isArray(w.c) ? w.c : [],
+      };
     case 'sw':
       return { type: 'switch', value: w.v };
     case 'in':

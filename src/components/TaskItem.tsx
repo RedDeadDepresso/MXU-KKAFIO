@@ -13,6 +13,7 @@ import { Tooltip } from './ui/Tooltip';
 import { ConfirmDialog } from './ConfirmDialog';
 import { buildListItemMenuItems, InlineNameEditor } from './listItemShared';
 import type { SelectedTask } from '@/types/interface';
+import { resolveOrderedCheckbox } from '@/utils/optionHelpers';
 import { isMxuSpecialTask, getMxuSpecialTask, findMxuOptionByKey } from '@/types/specialTasks';
 import { getInterfaceLangKey } from '@/i18n';
 import clsx from 'clsx';
@@ -583,6 +584,14 @@ export function TaskItem({ instanceId, task }: TaskItemProps) {
           key: optionKey,
           label: optionLabel,
           value: `${caseNames.length}/${'cases' in optionDef ? optionDef.cases.length : 0}`,
+          type: 'checkbox',
+        });
+      } else if (optionDef.type === 'ordered_checkbox') {
+        const { checked } = resolveOrderedCheckbox(optionDef, optionValue);
+        previews.push({
+          key: optionKey,
+          label: optionLabel,
+          value: `${checked.length}/${optionDef.cases.length}`,
           type: 'checkbox',
         });
       } else if (optionDef.type === 'folder' || optionDef.type === 'file_list' || optionDef.type === 'textarea') {

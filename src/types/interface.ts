@@ -132,7 +132,15 @@ export interface TaskItem {
   option?: string[];
 }
 
-export type OptionType = 'select' | 'checkbox' | 'input' | 'switch' | 'folder' | 'file_list' | 'textarea';
+export type OptionType =
+  | 'select'
+  | 'checkbox'
+  | 'ordered_checkbox'
+  | 'input'
+  | 'switch'
+  | 'folder'
+  | 'file_list'
+  | 'textarea';
 
 export interface CaseItem {
   name: string;
@@ -175,6 +183,21 @@ export interface SelectOption {
 /** v2.3.0: 多选框类型 */
 export interface CheckboxOption {
   type: 'checkbox';
+  label?: string;
+  description?: string;
+  icon?: string;
+  controller?: string[];
+  resource?: string[];
+  cases: CaseItem[];
+  default_case?: string[];
+}
+
+/** MXU 扩展：可拖拽排序的多选框。
+ *  与 checkbox 相同，但用户可以通过拖拽调整 cases 的顺序；
+ *  选中的 case 的 pipeline_override 按用户排序后的顺序合并。
+ *  初始顺序为 cases 的定义顺序，default_case 决定默认选中哪些。 */
+export interface OrderedCheckboxOption {
+  type: 'ordered_checkbox';
   label?: string;
   description?: string;
   icon?: string;
@@ -253,7 +276,7 @@ export interface TextAreaOption {
   pipeline_override?: Record<string, unknown>;
 }
 
-export type OptionDefinition = SelectOption | CheckboxOption | SwitchOption | InputOption | FolderOption | FileListOption | TextAreaOption;
+export type OptionDefinition = SelectOption | CheckboxOption | OrderedCheckboxOption | SwitchOption | InputOption | FolderOption | FileListOption | TextAreaOption;
 
 // 运行时状态类型
 export interface SelectedTask {
@@ -273,6 +296,13 @@ export type OptionValue =
   | {
       type: 'checkbox';
       caseNames: string[];
+    }
+  | {
+      type: 'ordered_checkbox';
+      /** 所有 case 的用户排序（包含未选中的） */
+      order: string[];
+      /** 选中的 case，按 order 的顺序排列 */
+      checked: string[];
     }
   | {
       type: 'switch';
@@ -355,7 +385,7 @@ export interface PresetTaskItem {
 /** v2.3.0: 预设中的选项值 */
 export type PresetOptionValue =
   | string // select / switch / folder / textarea
-  | string[] // checkbox / file_list
+  | string[] // checkbox / ordered_checkbox（按顺序选中的 case）/ file_list
   | Record<string, string>; // input
 
 /** v2.3.0: 预设配置项 */

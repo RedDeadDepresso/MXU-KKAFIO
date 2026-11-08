@@ -321,6 +321,7 @@ export default {
 
   // Option Editor
   optionEditor: {
+    dragToReorder: 'Drag to reorder',
     loadingDescription: 'Loading description...',
     loadedFromFile: 'Content loaded from local file',
     loadedFromUrl: 'Content loaded from URL',

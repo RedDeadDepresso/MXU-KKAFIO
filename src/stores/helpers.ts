@@ -1,5 +1,5 @@
 import type { OptionValue, OptionDefinition, PresetOptionValue, TaskItem } from '@/types/interface';
-import { findSwitchCase } from '@/utils/optionHelpers';
+import { findSwitchCase, resolveOrderedCheckbox } from '@/utils/optionHelpers';
 import type { AppState } from './types';
 
 /** 生成唯一 ID */
@@ -24,6 +24,11 @@ export const createDefaultOptionValue = (optionDef: OptionDefinition): OptionVal
   if (optionDef.type === 'checkbox') {
     const defaultCases = optionDef.default_case || [];
     return { type: 'checkbox', caseNames: [...defaultCases] };
+  }
+
+  if (optionDef.type === 'ordered_checkbox') {
+    const { order, checked } = resolveOrderedCheckbox(optionDef);
+    return { type: 'ordered_checkbox', order, checked };
   }
 
   if (optionDef.type === 'folder') {
@@ -108,6 +113,17 @@ export const convertPresetOptionValue = (
     const validNames = new Set((optDef.cases || []).map((c) => c.name));
     const caseNames = (presetValue as string[]).filter((name) => validNames.has(name));
     return { type: 'checkbox', caseNames };
+  }
+
+  if (optDef.type === 'ordered_checkbox' && Array.isArray(presetValue)) {
+    // 预设数组 = 按顺序选中的 case；其余 case 按定义顺序排在后面
+    const names = presetValue as string[];
+    const { order, checked } = resolveOrderedCheckbox(optDef, {
+      type: 'ordered_checkbox',
+      order: names,
+      checked: names,
+    });
+    return { type: 'ordered_checkbox', order, checked };
   }
 
   if (optDef.type === 'input' && typeof presetValue === 'object' && !Array.isArray(presetValue)) {

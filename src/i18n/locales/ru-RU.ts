@@ -322,6 +322,7 @@ export default {
 
   // Редактор параметров
   optionEditor: {
+    dragToReorder: 'Перетащите, чтобы изменить порядок',
     loadingDescription: 'Загрузка описания...',
     loadedFromFile: 'Содержимое загружено из локального файла',
     loadedFromUrl: 'Содержимое загружено по URL',

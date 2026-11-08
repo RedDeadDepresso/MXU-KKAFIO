@@ -318,6 +318,7 @@ export default {
 
   // 옵션 에디터
   optionEditor: {
+    dragToReorder: '드래그하여 순서 변경',
     loadingDescription: '설명 로딩 중...',
     loadedFromFile: '로컬 파일에서 로드됨',
     loadedFromUrl: '네트워크에서 로드됨',

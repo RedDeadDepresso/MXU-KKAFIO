@@ -314,6 +314,7 @@ export default {
 
   // 選項編輯器
   optionEditor: {
+    dragToReorder: '拖曳以調整順序',
     loadingDescription: '載入描述中...',
     loadedFromFile: '內容来自本機檔案',
     loadedFromUrl: '內容来自網路',
