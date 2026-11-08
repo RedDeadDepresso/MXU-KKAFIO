@@ -770,6 +770,8 @@ export function OptionEditor({
     const handleClearConfirm = async (deleteFolder: boolean) => {
       setShowClearDialog(false);
       if (!folderPath) return;
+      // Loading toast, replaced in place by the success/error toast (same id)
+      const toastId = toast.loading('Sending to Recycle Bin…');
       try {
         const { invoke } = await import('@tauri-apps/api/core');
         const result = await invoke<{ ok: boolean; error: string }>('kkafio_trash', {
@@ -777,13 +779,13 @@ export function OptionEditor({
           deleteFolder,
         });
         if (!result.ok) {
-          toast.error(`Failed to send to Recycle Bin:\n${result.error}`);
+          toast.error(`Failed to send to Recycle Bin:\n${result.error}`, { id: toastId });
         } else {
-          toast.success(deleteFolder ? 'Folder sent to Recycle Bin' : 'Folder contents sent to Recycle Bin');
+          toast.success(deleteFolder ? 'Folder sent to Recycle Bin' : 'Folder contents sent to Recycle Bin', { id: toastId });
           if (deleteFolder) setPath('');
         }
       } catch (e) {
-        toast.error(`Failed to send to Recycle Bin: ${e}`);
+        toast.error(`Failed to send to Recycle Bin: ${e}`, { id: toastId });
       }
     };
 
