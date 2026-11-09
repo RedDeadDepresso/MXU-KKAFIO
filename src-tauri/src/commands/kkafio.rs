@@ -691,72 +691,21 @@ pub fn kkafio_organize_library(cwd: String, instance_index: Option<usize>) -> Ru
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        // Hides the intermediate `cmd /c start` window; `start` itself opens
-        // the new visible console for the batch file.
-        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        // Give the CLI its own visible console window (MXU is a GUI app and
+        // has no console to inherit).
+        const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
 
-        // Quote for a batch file (inside quotes only `%` needs escaping).
-        fn q(s: &str) -> String {
-            format!("\"{}\"", s.replace('%', "%%"))
-        }
-
-        let mut cli_line = q(&program);
-        for a in &args {
-            cli_line.push(' ');
-            cli_line.push_str(&q(a));
-        }
-
-        // A small throw-away batch file keeps the quoting and the
-        // "pause only on failure" logic out of cmd's command-line parsing.
-        let script = format!(
-            "@echo off\r\n\
-             chcp 65001 >nul\r\n\
-             set PYTHONIOENCODING=utf-8\r\n\
-             set PYTHONUTF8=1\r\n\
-             cd /d {cwd}\r\n\
-             {cli_line}\r\n\
-             if errorlevel 1 (\r\n\
-             \x20 echo.\r\n\
-             \x20 echo Organize Library exited with an error.\r\n\
-             \x20 pause\r\n\
-             )\r\n\
-             (goto) 2>nul & del \"%~f0\"\r\n",
-            cwd = q(&cwd),
-            cli_line = cli_line,
-        );
-
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_nanos())
-            .unwrap_or(0);
-        let bat = std::env::temp_dir().join(format!(
-            "kkafio_organize_library_{}_{}.bat",
-            std::process::id(),
-            nanos
-        ));
-        if let Err(e) = std::fs::write(&bat, script) {
-            return RunGameResult {
-                ok: false,
-                exe: program,
-                error: format!("Failed to write launcher script: {}", e),
-            };
-        }
-
-        let result = Command::new("cmd.exe")
-            .args(["/c", "start", "KKAFIO - Organize Library"])
-            .arg(&bat)
-            .creation_flags(CREATE_NO_WINDOW)
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
+        let result = Command::new(&program)
+            .args(&args)
+            .current_dir(&cwd)
+            .env("PYTHONIOENCODING", "utf-8")
+            .env("PYTHONUTF8", "1")
+            .creation_flags(CREATE_NEW_CONSOLE)
             .spawn();
 
         return match result {
             Ok(_) => RunGameResult { ok: true, exe: program, error: String::new() },
-            Err(e) => {
-                let _ = std::fs::remove_file(&bat);
-                RunGameResult { ok: false, exe: program, error: e.to_string() }
-            }
+            Err(e) => RunGameResult { ok: false, exe: program, error: e.to_string() },
         };
     }
 
