@@ -691,16 +691,37 @@ pub fn kkafio_organize_library(cwd: String, instance_index: Option<usize>) -> Ru
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
-        // Give the CLI its own visible console window (MXU is a GUI app and
-        // has no console to inherit).
-        const CREATE_NEW_CONSOLE: u32 = 0x0000_0010;
+        // Hides the intermediate `cmd /c start` window; `start` itself opens
+        // the new visible console for the CLI.
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-        let result = Command::new(&program)
-            .args(&args)
-            .current_dir(&cwd)
-            .env("PYTHONIOENCODING", "utf-8")
-            .env("PYTHONUTF8", "1")
-            .creation_flags(CREATE_NEW_CONSOLE)
+        // Quote one argument for cmd.exe.
+        fn q(s: &str) -> String {
+            format!("\"{}\"", s)
+        }
+
+        let mut cli_line = q(&program);
+        for a in &args {
+            cli_line.push(' ');
+            cli_line.push_str(&q(a));
+        }
+
+        // Inner command run by the new cmd window. `pause` only when the CLI
+        // fails so the error stays readable; the window closes on success.
+        let inner = format!(
+            "chcp 65001>nul & set PYTHONIOENCODING=utf-8& set PYTHONUTF8=1& cd /d {cwd} & \
+             {cli_line} || (echo. & echo Organize Library exited with an error. & pause)",
+            cwd = q(&cwd),
+            cli_line = cli_line,
+        );
+
+        // raw_arg avoids Rust re-quoting the command line.
+        let result = Command::new("cmd.exe")
+            .raw_arg(format!("/c start \"KKAFIO - Organize Library\" cmd.exe /c \"{}\"", inner))
+            .creation_flags(CREATE_NO_WINDOW)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .spawn();
 
         return match result {
