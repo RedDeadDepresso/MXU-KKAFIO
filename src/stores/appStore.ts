@@ -1223,6 +1223,7 @@ export const useAppStore = create<AppState>()(
         nextInstanceNumber: maxNumber + 1,
         windowSize: localLayout?.windowSize ?? config.settings.windowSize ?? defaultWindowSize,
         windowPosition: localLayout ? localLayout.windowPosition : config.settings.windowPosition,
+        windowMaximized: localLayout?.windowMaximized ?? config.settings.windowMaximized ?? false,
         mirrorChyanSettings: (() => {
           const saved = config.settings.mirrorChyan || defaultMirrorChyanSettings;
           const piName = get().projectInterface?.name;
@@ -1636,6 +1637,13 @@ export const useAppStore = create<AppState>()(
       if (!isTauri()) patchWebUILayout({ windowPosition: position });
     },
 
+    // 窗口最大化状态
+    windowMaximized: false,
+    setWindowMaximized: (maximized) => {
+      set({ windowMaximized: maximized });
+      if (!isTauri()) patchWebUILayout({ windowMaximized: maximized });
+    },
+
     // MirrorChyan 更新设置
     mirrorChyanSettings: defaultMirrorChyanSettings,
     setMirrorChyanCdk: (cdk) =>
@@ -2032,6 +2040,7 @@ function generateConfig(): MxuConfig {
           autoClearLogsOnLaunch: state.autoClearLogsOnLaunch,
           windowSize: bl?.windowSize ?? state.windowSize,
           windowPosition: bl?.windowPosition ?? state.windowPosition,
+          windowMaximized: bl?.windowMaximized ?? state.windowMaximized,
           showOptionPreview: bl?.showOptionPreview ?? state.showOptionPreview,
           rightPanelWidth: bl?.rightPanelWidth ?? state.rightPanelWidth,
           rightPanelCollapsed: bl?.rightPanelCollapsed ?? state.rightPanelCollapsed,
@@ -2102,6 +2111,7 @@ useAppStore.subscribe(
       customAccents: state.customAccents,
       windowSize: state.windowSize,
       windowPosition: state.windowPosition,
+      windowMaximized: state.windowMaximized,
       showOptionPreview: state.showOptionPreview,
       rightPanelWidth: state.rightPanelWidth,
       rightPanelCollapsed: state.rightPanelCollapsed,

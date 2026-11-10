@@ -136,6 +136,7 @@ export interface AppSettings {
   autoClearLogsOnLaunch?: boolean;
   windowSize?: WindowSize;
   windowPosition?: WindowPosition; // 窗口位置
+  windowMaximized?: boolean; // 窗口是否最大化
   mirrorChyan?: MirrorChyanSettings;
   proxy?: ProxySettings; // 代理设置
   showOptionPreview?: boolean; // 是否在任务列表显示选项预览

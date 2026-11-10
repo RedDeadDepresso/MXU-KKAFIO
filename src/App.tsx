@@ -150,6 +150,7 @@ function App() {
     language,
     setWindowSize: setWindowSizeStore,
     setWindowPosition: setWindowPositionStore,
+    setWindowMaximized: setWindowMaximizedStore,
     setUpdateInfo,
     setDownloadStatus,
     setDownloadProgress,
@@ -187,6 +188,7 @@ function App() {
       language: state.language,
       setWindowSize: state.setWindowSize,
       setWindowPosition: state.setWindowPosition,
+      setWindowMaximized: state.setWindowMaximized,
       setUpdateInfo: state.setUpdateInfo,
       setDownloadStatus: state.setDownloadStatus,
       setDownloadProgress: state.setDownloadProgress,
@@ -599,6 +601,16 @@ function App() {
         }
       }
 
+      // 恢复最大化状态（先恢复普通大小/位置，再最大化，这样还原时能回到上次的普通尺寸）
+      if (config.settings.windowMaximized && isTauri()) {
+        try {
+          const { getCurrentWindow } = await import('@tauri-apps/api/window');
+          await getCurrentWindow().maximize();
+        } catch (err) {
+          log.warn('恢复窗口最大化状态失败:', err);
+        }
+      }
+
       // 主题已应用、窗口已定位，显示窗口
       showWindow();
 
@@ -976,6 +988,9 @@ function App() {
           showOptionPreview: localLayout.showOptionPreview,
           ...(localLayout.windowSize && { windowSize: localLayout.windowSize }),
           ...(localLayout.windowPosition && { windowPosition: localLayout.windowPosition }),
+          ...(localLayout.windowMaximized !== undefined && {
+            windowMaximized: localLayout.windowMaximized,
+          }),
         });
       }
     }
@@ -1203,8 +1218,11 @@ function App() {
             clearTimeout(resizeTimeout);
           }
           resizeTimeout = setTimeout(async () => {
-            // 最大化时不保存大小
+            // 记录最大化状态；最大化时不保存大小（保留还原后的普通尺寸）
             const isMaximized = await currentWindow.isMaximized();
+            if (useAppStore.getState().windowMaximized !== isMaximized) {
+              setWindowMaximizedStore(isMaximized);
+            }
             if (isMaximized) return;
 
             const size = await getWindowSize();
@@ -1250,7 +1268,7 @@ function App() {
         clearTimeout(moveTimeout);
       }
     };
-  }, [setWindowSizeStore, setWindowPositionStore]);
+  }, [setWindowSizeStore, setWindowPositionStore, setWindowMaximizedStore]);
 
   // 禁用浏览器默认右键菜单（让自定义菜单生效）
   useEffect(() => {

@@ -329,6 +329,10 @@ export interface AppState {
   windowPosition: WindowPosition | undefined;
   setWindowPosition: (position: WindowPosition | undefined) => void;
 
+  // 窗口是否最大化
+  windowMaximized: boolean;
+  setWindowMaximized: (maximized: boolean) => void;
+
   // MirrorChyan 更新设置
   mirrorChyanSettings: MirrorChyanSettings;
   setMirrorChyanCdk: (cdk: string) => void;

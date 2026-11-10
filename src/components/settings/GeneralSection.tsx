@@ -113,6 +113,11 @@ export function GeneralSection() {
       const { LogicalSize } = await import('@tauri-apps/api/dpi');
       const currentWindow = getCurrentWindow();
 
+      if (await currentWindow.isMaximized()) {
+        await currentWindow.unmaximize();
+      }
+      useAppStore.getState().setWindowMaximized(false);
+
       await currentWindow.setSize(
         new LogicalSize(defaultWindowSize.width, defaultWindowSize.height),
       );

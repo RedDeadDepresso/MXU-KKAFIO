@@ -64,6 +64,7 @@ const LAYOUT_KEY = 'mxu-webui-layout';
 export interface WebUILayout {
   windowSize?: WindowSize;
   windowPosition?: WindowPosition;
+  windowMaximized?: boolean;
   rightPanelWidth: number;
   rightPanelCollapsed: boolean;
   addTaskPanelHeight: number;
@@ -141,6 +142,7 @@ export function getBackendAppearance(): Partial<WebUIAppearance> {
 export function cacheBackendLayout(settings: {
   windowSize?: WindowSize;
   windowPosition?: WindowPosition;
+  windowMaximized?: boolean;
   rightPanelWidth?: number;
   rightPanelCollapsed?: boolean;
   addTaskPanelHeight?: number;
