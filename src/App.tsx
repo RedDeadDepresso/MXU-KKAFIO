@@ -357,8 +357,6 @@ function App() {
   const initialized = useRef(false);
   const downloadStartedRef = useRef(false);
   const pendingAutoTasksRef = useRef(false);
-  // 启动时正在恢复最大化状态，期间 onResized 不应把 windowMaximized 覆盖为 false
-  const restoringMaximizeRef = useRef(false);
   // 尝试自动安装更新（无任务运行中时触发）
   const tryAutoInstallUpdate = useCallback(() => {
     const state = useAppStore.getState();
@@ -603,36 +601,18 @@ function App() {
         }
       }
 
-      // 主题已应用、窗口已定位，显示窗口
-      await showWindow();
-
       // 恢复最大化状态（先恢复普通大小/位置，再最大化，这样还原时能回到上次的普通尺寸）
-      // 必须在窗口显示之后再最大化：窗口以 visible:false 启动时，隐藏状态下的 maximize 在部分平台上不生效，
-      // 且此前的 onResized 回调会误把 windowMaximized 覆盖为 false 并写回配置文件
       if (config.settings.windowMaximized && isTauri()) {
-        restoringMaximizeRef.current = true;
         try {
           const { getCurrentWindow } = await import('@tauri-apps/api/window');
-          const win = getCurrentWindow();
-          await win.maximize();
-          // 确认真的最大化了，否则重试一次
-          if (!(await win.isMaximized())) {
-            await new Promise((r) => setTimeout(r, 100));
-            await win.maximize();
-          }
-          // 确保 store 状态与配置一致
-          if (!useAppStore.getState().windowMaximized) {
-            setWindowMaximizedStore(true);
-          }
+          await getCurrentWindow().maximize();
         } catch (err) {
           log.warn('恢复窗口最大化状态失败:', err);
-        } finally {
-          // 等待窗口事件（防抖 500ms）全部处理完再解除保护
-          setTimeout(() => {
-            restoringMaximizeRef.current = false;
-          }, 1500);
         }
       }
+
+      // 主题已应用、窗口已定位，显示窗口
+      showWindow();
 
       // 从后端恢复运行日志（跨页面刷新持久化）
       try {
@@ -1240,8 +1220,6 @@ function App() {
           resizeTimeout = setTimeout(async () => {
             // 记录最大化状态；最大化时不保存大小（保留还原后的普通尺寸）
             const isMaximized = await currentWindow.isMaximized();
-            // 启动恢复最大化期间不要用中间状态覆盖已保存的最大化标记
-            if (restoringMaximizeRef.current && !isMaximized) return;
             if (useAppStore.getState().windowMaximized !== isMaximized) {
               setWindowMaximizedStore(isMaximized);
             }
